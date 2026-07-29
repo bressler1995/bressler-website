@@ -2,6 +2,23 @@
 import '@/styles/global.css';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const brand = [
+	{ name: 'plum', hex: '#401F3E', cls: 'bg-brand-plum', role: 'Primary' },
+	{ name: 'iris', hex: '#3F2E56', cls: 'bg-brand-iris', role: 'Secondary' },
+	{ name: 'mist', hex: '#759AAB', cls: 'bg-brand-mist', role: 'Low emphasis' },
+];
+
+const semantic = [
+	'bg-background',
+	'bg-card',
+	'bg-primary',
+	'bg-secondary',
+	'bg-muted',
+	'bg-accent',
+	'bg-border',
+	'bg-destructive',
+];
 ---
 
 <html lang="en">
@@ -14,22 +31,64 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 		<title>Brian Ressler</title>
 	</head>
 	<body class="bg-background text-foreground min-h-dvh">
-		<main class="mx-auto max-w-2xl px-6 py-24">
-			<h1 class="text-4xl font-semibold tracking-tight">Brian Ressler</h1>
-			<p class="text-muted-foreground mt-3">Portfolio, under construction.</p>
+		<main class="mx-auto max-w-3xl px-6 py-16">
+			<div class="flex items-start justify-between gap-4">
+				<div>
+					<h1 class="text-4xl font-semibold tracking-tight">Brian Ressler</h1>
+					<p class="text-muted-foreground mt-3">Portfolio, under construction.</p>
+				</div>
+				<Button id="theme-toggle" variant="outline" size="sm">Toggle theme</Button>
+			</div>
 
 			<Card className="mt-10">
 				<CardHeader>
-					<CardTitle>Stack check</CardTitle>
+					<CardTitle>Brand palette</CardTitle>
 				</CardHeader>
-				<CardContent className="space-y-4">
-					<p class="text-muted-foreground text-sm">
-						If this card has a border and the button below is styled, Astro +
-						Tailwind + shadcn/ui are all wired up correctly.
-					</p>
-					<Button>It works</Button>
+				<CardContent className="space-y-6">
+					<div class="grid gap-4 sm:grid-cols-3">
+						{
+							brand.map((c) => (
+								<div>
+									<div class={`${c.cls} h-16 rounded-lg border`} />
+									<p class="mt-2 text-sm font-medium">{c.role}</p>
+									<p class="text-muted-foreground font-mono text-xs">{c.hex}</p>
+								</div>
+							))
+						}
+					</div>
+
+					<div>
+						<p class="mb-2 text-sm font-medium">Semantic tokens</p>
+						<div class="flex flex-wrap gap-2">
+							{
+								semantic.map((cls) => (
+									<div class="text-center">
+										<div class={`${cls} size-12 rounded-md border`} />
+										<p class="text-muted-foreground mt-1 font-mono text-[10px]">
+											{cls.replace('bg-', '')}
+										</p>
+									</div>
+								))
+							}
+						</div>
+					</div>
+
+					<div class="flex flex-wrap gap-3 border-t pt-4">
+						<Button>Primary</Button>
+						<Button variant="secondary">Secondary</Button>
+						<Button variant="outline">Outline</Button>
+						<Button variant="ghost">Ghost</Button>
+						<Button variant="destructive">Destructive</Button>
+					</div>
 				</CardContent>
 			</Card>
 		</main>
+
+		<script>
+			const root = document.documentElement;
+			document.getElementById('theme-toggle')?.addEventListener('click', () => {
+				root.classList.toggle('dark');
+			});
+		</script>
 	</body>
 </html>

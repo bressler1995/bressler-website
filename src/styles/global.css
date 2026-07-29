@@ -8,6 +8,12 @@
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    /* Raw brand colors, identical in light and dark. Use these only when you
+       need the literal brand color (logo, illustration); prefer the semantic
+       tokens below for UI so light/dark and contrast are handled for you. */
+    --color-brand-plum: var(--brand-plum);
+    --color-brand-iris: var(--brand-iris);
+    --color-brand-mist: var(--brand-mist);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -49,72 +55,93 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    /* --- Brand palette (source of truth) ------------------------------------
+       plum  #401F3E  primary brand color
+       iris  #3F2E56  secondary / supporting
+       mist  #759AAB  low-emphasis accents, borders, large text only
+       These are the exact hexes, expressed in oklch so they can be lightened
+       or darkened by adjusting the first value without hue drift. */
+    --brand-plum: oklch(0.2979 0.0697 329.4);
+    --brand-iris: oklch(0.3397 0.0708 302.39);
+    --brand-mist: oklch(0.6648 0.0479 227.84);
+
+    /* --- Semantic tokens (light) -------------------------------------------- */
+    --background: oklch(0.994 0.003 325);
+    --foreground: oklch(0.22 0.03 322);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.22 0.03 322);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.22 0.03 322);
+    /* Plum at full strength; white text on it measures 13.54:1. */
+    --primary: var(--brand-plum);
+    --primary-foreground: oklch(0.985 0.003 325);
+    /* Iris is too dark to sit next to plum as a surface (1.17:1 apart), so the
+       surface is a pale iris tint and the literal brand color carries the text. */
+    --secondary: oklch(0.945 0.018 302);
+    --secondary-foreground: var(--brand-iris);
+    --muted: oklch(0.96 0.008 228);
+    /* Mist darkened to L=0.52; the raw #759AAB is only 3.01:1 on white and
+       fails AA for body text. Use --brand-mist itself for borders/large text. */
+    --muted-foreground: oklch(0.52 0.0479 227.84);
+    --accent: oklch(0.93 0.022 228);
+    --accent-foreground: oklch(0.32 0.0479 227.84);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    --border: oklch(0.9 0.012 250);
+    --input: oklch(0.9 0.012 250);
+    --ring: var(--brand-plum);
+    --chart-1: oklch(0.45 0.09 329.4);
+    --chart-2: oklch(0.52 0.09 302.39);
+    --chart-3: oklch(0.6 0.07 262);
+    --chart-4: var(--brand-mist);
+    --chart-5: oklch(0.75 0.045 200);
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar: oklch(0.975 0.006 322);
+    --sidebar-foreground: oklch(0.22 0.03 322);
+    --sidebar-primary: var(--brand-plum);
+    --sidebar-primary-foreground: oklch(0.985 0.003 325);
+    --sidebar-accent: oklch(0.93 0.022 228);
+    --sidebar-accent-foreground: oklch(0.32 0.0479 227.84);
+    --sidebar-border: oklch(0.9 0.012 250);
+    --sidebar-ring: var(--brand-plum);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    /* Dark mode keeps the brand hues but raises lightness — the raw hexes are
+       far too dark to read against a dark background. Hue and chroma are
+       unchanged from the brand colors, so it still reads as the same palette. */
+    --background: oklch(0.165 0.018 322);
+    --foreground: oklch(0.96 0.006 325);
+    --card: oklch(0.21 0.022 322);
+    --card-foreground: oklch(0.96 0.006 325);
+    --popover: oklch(0.21 0.022 322);
+    --popover-foreground: oklch(0.96 0.006 325);
+    /* Plum lifted to L=0.72 (#be95ba) with a dark label: 7.13:1. */
+    --primary: oklch(0.72 0.0697 329.4);
+    --primary-foreground: oklch(0.2 0.03 329);
+    --secondary: oklch(0.3 0.035 302.39);
+    --secondary-foreground: oklch(0.93 0.02 302.39);
+    --muted: oklch(0.27 0.02 240);
+    /* Mist lifted to L=0.72: 7.89:1 on the page background. */
+    --muted-foreground: oklch(0.72 0.0479 227.84);
+    --accent: oklch(0.32 0.03 250);
+    --accent-foreground: oklch(0.94 0.01 228);
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
+    --border: oklch(1 0 0 / 12%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --ring: oklch(0.65 0.0479 227.84);
+    --chart-1: oklch(0.72 0.0697 329.4);
+    --chart-2: oklch(0.7 0.075 302.39);
+    --chart-3: oklch(0.68 0.06 262);
+    --chart-4: oklch(0.72 0.0479 227.84);
+    --chart-5: oklch(0.8 0.045 200);
+    --sidebar: oklch(0.19 0.02 322);
+    --sidebar-foreground: oklch(0.96 0.006 325);
+    --sidebar-primary: oklch(0.72 0.0697 329.4);
+    --sidebar-primary-foreground: oklch(0.2 0.03 329);
+    --sidebar-accent: oklch(0.32 0.03 250);
+    --sidebar-accent-foreground: oklch(0.94 0.01 228);
+    --sidebar-border: oklch(1 0 0 / 12%);
+    --sidebar-ring: oklch(0.65 0.0479 227.84);
 }
 
 @layer base {
