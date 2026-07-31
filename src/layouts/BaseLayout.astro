@@ -46,6 +46,12 @@ const {
 				}
 			})();
 		</script>
+		{/* Eased section scrolling. astro:page-load fires on first load and after
+		    every client-side navigation, and the module re-binds cleanly. */}
+		<script>
+			import { initScrollSections } from '@/scripts/scroll-sections';
+			document.addEventListener('astro:page-load', initScrollSections);
+		</script>
 	</head>
 	<body class="bg-background text-foreground min-h-dvh antialiased">
 		{/* transition:persist keeps this exact DOM node (and its React state)
@@ -60,7 +66,7 @@ const {
 
 		{/* Also a snap point. Without one it would sit past the final snap
 		    position and mandatory snapping would pull the page back off it. */}
-		<footer class="border-border/60 snap-start border-t">
+		<footer data-section class="border-border/60 snap-start border-t">
 			<div
 				class="text-muted-foreground mx-auto flex max-w-5xl flex-col gap-2 px-6 py-8 text-sm sm:flex-row sm:items-center sm:justify-between"
 			>

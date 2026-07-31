@@ -170,4 +170,11 @@
       scroll-behavior: auto;
       }
     }
+  /* Set by the scroll controller once it takes over. Native snapping and
+     smooth-scroll would both fight its per-frame scrollTo calls, so they're
+     switched off while it drives. */
+  html.js-scroll {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+    }
 }
