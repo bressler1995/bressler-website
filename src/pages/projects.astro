@@ -1,0 +1,44 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section.astro';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const projects = [
+	{ title: 'Project One', blurb: 'Placeholder description.', tags: ['Astro', 'TypeScript'] },
+	{ title: 'Project Two', blurb: 'Placeholder description.', tags: ['React', 'Node.js'] },
+	{ title: 'Project Three', blurb: 'Placeholder description.', tags: ['Postgres'] },
+	{ title: 'Project Four', blurb: 'Placeholder description.', tags: ['Docker', 'CI'] },
+];
+---
+
+<BaseLayout title="Projects — Brian Ressler">
+	<Section align="start">
+		<h1 class="text-4xl font-semibold tracking-tight">Projects</h1>
+	<p class="text-muted-foreground mt-2">
+		Placeholder cards. Replace with a content collection when you're ready.
+	</p>
+
+	<div class="mt-8 grid gap-4 sm:grid-cols-2">
+		{
+			projects.map((project) => (
+				<Card>
+					<CardHeader>
+						<CardTitle>{project.title}</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<p class="text-muted-foreground text-sm">{project.blurb}</p>
+						<ul class="flex flex-wrap gap-2">
+							{project.tags.map((tag) => (
+								<li>
+									<Badge variant="secondary">{tag}</Badge>
+								</li>
+							))}
+						</ul>
+					</CardContent>
+				</Card>
+			))
+		}
+		</div>
+	</Section>
+</BaseLayout>

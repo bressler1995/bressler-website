@@ -1,0 +1,74 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Nav from '@/components/Nav';
+import '@/styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = 'Brian Ressler',
+	description = 'Portfolio of Brian Ressler — software engineer.',
+} = Astro.props;
+---
+
+<html lang="en" class="dark">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={description} />
+		<title>{title}</title>
+
+		{/* Enables client-side routing: navigation swaps the document in place
+		    instead of doing a full browser reload. */}
+		<ClientRouter />
+
+		{/* Runs before first paint so the correct theme is applied with no flash.
+		    `is:inline` keeps it out of the bundle, which would be deferred. */}
+		<script is:inline>
+			(() => {
+				const apply = () => {
+					const theme = localStorage.getItem('theme') ?? 'dark';
+					document.documentElement.classList.toggle('dark', theme === 'dark');
+				};
+				apply();
+				// The router swaps <html>, so the class has to be reapplied after
+				// each navigation. Guarded so repeat head execution can't stack
+				// duplicate listeners.
+				if (!window.__themeListenerBound) {
+					window.__themeListenerBound = true;
+					document.addEventListener('astro:after-swap', apply);
+				}
+			})();
+		</script>
+	</head>
+	<body class="bg-background text-foreground min-h-dvh antialiased">
+		{/* transition:persist keeps this exact DOM node (and its React state)
+		    across navigations, so the bar never re-mounts or flickers. */}
+		<Nav client:load transition:persist />
+
+		{/* No padding or width here — each <Section> owns its own sizing so
+		    every section is exactly one viewport tall. */}
+		<main>
+			<slot />
+		</main>
+
+		{/* Also a snap point. Without one it would sit past the final snap
+		    position and mandatory snapping would pull the page back off it. */}
+		<footer class="border-border/60 snap-start border-t">
+			<div
+				class="text-muted-foreground mx-auto flex max-w-5xl flex-col gap-2 px-6 py-8 text-sm sm:flex-row sm:items-center sm:justify-between"
+			>
+				<p>© {new Date().getFullYear()} Brian Ressler</p>
+				<a href="/palette" class="hover:text-foreground transition-colors">
+					Design tokens
+				</a>
+			</div>
+		</footer>
+	</body>
+</html>

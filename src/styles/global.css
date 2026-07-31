@@ -153,5 +153,21 @@
     }
   html {
     @apply font-sans;
+    /* One viewport per section, snapping to each in turn. The document itself
+       is the scroll container (rather than a wrapper element) so mobile browser
+       chrome still collapses on scroll and dvh units resolve correctly. */
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    }
+  /* Mandatory snapping fights the user when a viewport-height section can't
+     actually fit — short windows, landscape phones, or high browser zoom. It's
+     also disorienting for anyone who has asked for reduced motion. Drop back to
+     ordinary scrolling in those cases; the layout is unchanged, only the
+     snapping stops. */
+  @media (prefers-reduced-motion: reduce), (max-height: 600px) {
+    html {
+      scroll-snap-type: none;
+      scroll-behavior: auto;
+      }
     }
 }

@@ -1,0 +1,40 @@
+---
+/**
+ * The standard page section: exactly one viewport tall, and a scroll-snap stop.
+ * Every non-collection page should be built out of these so scrolling behaves
+ * identically everywhere.
+ *
+ * Content taller than the viewport is safe — the CSS scroll-snap spec requires
+ * browsers to allow free scrolling within a snap area larger than the viewport,
+ * so a long section won't trap the user; it just scrolls normally until the
+ * next section takes over.
+ */
+interface Props {
+	id?: string;
+	class?: string;
+	/**
+	 * `center` vertically centers content (good for hero / short sections).
+	 * `start` pins it to the top (use when content is likely to fill or exceed
+	 * the viewport, e.g. long card grids).
+	 */
+	align?: 'center' | 'start';
+}
+
+const { id, class: className, align = 'center' } = Astro.props;
+---
+
+<section
+	id={id}
+	class:list={[
+		'flex min-h-dvh w-full snap-start flex-col',
+		// Top padding clears the floating nav; sections snap to their own top,
+		// so this doubles as scroll offset for anchor links.
+		'px-6 pt-28 pb-16',
+		align === 'center' ? 'justify-center' : 'justify-start',
+		className,
+	]}
+>
+	<div class="mx-auto w-full max-w-5xl">
+		<slot />
+	</div>
+</section>

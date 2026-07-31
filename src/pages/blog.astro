@@ -1,0 +1,41 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section.astro';
+import { Separator } from '@/components/ui/separator';
+
+const posts = [
+	{ title: 'First post', date: '2026-07-01', blurb: 'Placeholder excerpt.' },
+	{ title: 'Second post', date: '2026-06-14', blurb: 'Placeholder excerpt.' },
+	{ title: 'Third post', date: '2026-05-30', blurb: 'Placeholder excerpt.' },
+];
+---
+
+<BaseLayout title="Blog — Brian Ressler">
+	<Section align="start">
+		<h1 class="text-4xl font-semibold tracking-tight">Blog</h1>
+	<p class="text-muted-foreground mt-2">
+		Placeholder list. Wire this to a content collection of MDX posts later.
+	</p>
+
+	<div class="mt-8 flex flex-col">
+		{
+			posts.map((post, i) => (
+				<>
+					{i > 0 && <Separator />}
+					<article class="group py-6">
+						<a href="#" class="block">
+							<h2 class="group-hover:text-primary text-xl font-medium transition-colors">
+								{post.title}
+							</h2>
+							<time class="text-muted-foreground mt-1 block text-sm" datetime={post.date}>
+								{post.date}
+							</time>
+							<p class="text-muted-foreground mt-2 text-sm">{post.blurb}</p>
+						</a>
+					</article>
+				</>
+			))
+		}
+		</div>
+	</Section>
+</BaseLayout>

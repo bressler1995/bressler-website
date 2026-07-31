@@ -1,14 +1,14 @@
 ---
+layout: '@/layouts/BaseLayout.astro'
 title: MDX smoke test
 ---
 
 import { Button } from '@/components/ui/button';
-import '@/styles/global.css';
 
 # MDX smoke test
 
 Plain markdown renders here, and so do components:
 
-<Button>A shadcn button inside MDX</Button>
+<Button client:load>A shadcn button inside MDX</Button>
 
 Delete this file once you've confirmed `/mdx-smoke-test` loads.

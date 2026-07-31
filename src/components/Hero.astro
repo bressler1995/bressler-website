@@ -1,0 +1,27 @@
+---
+import Section from '@/components/Section.astro';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+---
+
+<Section id="hero">
+	<Badge variant="secondary" className="w-fit">Available for work</Badge>
+
+	<h1 class="mt-6 text-5xl font-semibold tracking-tight text-balance sm:text-6xl">
+		Brian Ressler
+	</h1>
+
+	<p class="text-muted-foreground mt-4 max-w-xl text-lg text-pretty">
+		Software engineer building fast, accessible web applications. Placeholder
+		copy — swap this for a real positioning statement.
+	</p>
+
+	<div class="mt-8 flex flex-wrap gap-3">
+		<Button size="lg" asChild>
+			<a href="/projects">View projects</a>
+		</Button>
+		<Button size="lg" variant="outline" asChild>
+			<a href="#skills">Skills</a>
+		</Button>
+	</div>
+</Section>

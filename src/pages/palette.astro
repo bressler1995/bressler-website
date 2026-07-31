@@ -1,0 +1,83 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section.astro';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const brand = [
+	{ hex: '#401F3E', cls: 'bg-brand-plum', role: 'Primary' },
+	{ hex: '#3F2E56', cls: 'bg-brand-iris', role: 'Secondary' },
+	{ hex: '#759AAB', cls: 'bg-brand-mist', role: 'Low emphasis' },
+];
+
+const semantic = [
+	'bg-background',
+	'bg-card',
+	'bg-primary',
+	'bg-secondary',
+	'bg-muted',
+	'bg-accent',
+	'bg-border',
+	'bg-destructive',
+];
+---
+
+<BaseLayout title="Design tokens — Brian Ressler">
+	<Section align="start">
+		<h1 class="text-3xl font-semibold tracking-tight">Design tokens</h1>
+	<p class="text-muted-foreground mt-2">
+		Reference for building pages. Toggle the theme in the nav to check both modes.
+	</p>
+
+	<Card className="mt-8">
+		<CardHeader>
+			<CardTitle>Brand palette</CardTitle>
+		</CardHeader>
+		<CardContent className="space-y-6">
+			<div class="grid gap-4 sm:grid-cols-3">
+				{
+					brand.map((c) => (
+						<div>
+							<div class={`${c.cls} h-16 rounded-lg border`} />
+							<p class="mt-2 text-sm font-medium">{c.role}</p>
+							<p class="text-muted-foreground font-mono text-xs">{c.hex}</p>
+						</div>
+					))
+				}
+			</div>
+
+			<div>
+				<p class="mb-2 text-sm font-medium">Semantic tokens</p>
+				<div class="flex flex-wrap gap-2">
+					{
+						semantic.map((cls) => (
+							<div class="text-center">
+								<div class={`${cls} size-12 rounded-md border`} />
+								<p class="text-muted-foreground mt-1 font-mono text-[10px]">
+									{cls.replace('bg-', '')}
+								</p>
+							</div>
+						))
+					}
+				</div>
+			</div>
+
+			<div class="flex flex-wrap gap-3 border-t pt-4">
+				<Button>Primary</Button>
+				<Button variant="secondary">Secondary</Button>
+				<Button variant="outline">Outline</Button>
+				<Button variant="ghost">Ghost</Button>
+				<Button variant="destructive">Destructive</Button>
+			</div>
+
+			<div class="flex flex-wrap gap-2">
+				<Badge>Default</Badge>
+				<Badge variant="secondary">Secondary</Badge>
+				<Badge variant="outline">Outline</Badge>
+				<Badge variant="destructive">Destructive</Badge>
+			</div>
+			</CardContent>
+		</Card>
+	</Section>
+</BaseLayout>
