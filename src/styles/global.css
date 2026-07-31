@@ -1,13 +1,75 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/nunito";
+@import "@fontsource-variable/open-sans";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
+    /* Nunito carries headings and buttons — anything that should feel
+       prominent. Open Sans carries body copy and incidental text. */
+    --font-heading: 'Nunito Variable', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+    /* Standard page width. Sections, the nav and the footer all reference this
+       so their left and right edges line up. Note this is a *container* width,
+       not a reading width — long-form prose inside a section should still be
+       constrained further (max-w-prose or similar), since 1600px of body text
+       is far past a comfortable line length. */
+    --container-page: 100rem; /* 1600px */
+
+    /* --- Type scale ---------------------------------------------------------
+       Semantic names, not raw steps: use `text-h2` for a section heading rather
+       than picking `text-3xl` by eye. Each token carries its own line-height,
+       letter-spacing and weight, so one utility fully describes the style.
+
+       display / h1-h4  -> Nunito, set by the base rules below
+       body-* / caption -> Open Sans
+
+       The largest three sizes are fluid (clamp) so they scale with the viewport
+       instead of needing responsive variants at every call site. */
+    --text-display: clamp(2.5rem, 5vw + 1rem, 3.75rem);
+    --text-display--line-height: 1.02;
+    --text-display--letter-spacing: -0.03em;
+    --text-display--font-weight: 600;
+
+    --text-h1: clamp(2rem, 3vw + 0.75rem, 2.75rem);
+    --text-h1--line-height: 1.1;
+    --text-h1--letter-spacing: -0.02em;
+    --text-h1--font-weight: 600;
+
+    --text-h2: clamp(1.625rem, 1.5vw + 1rem, 2rem);
+    --text-h2--line-height: 1.2;
+    --text-h2--letter-spacing: -0.015em;
+    --text-h2--font-weight: 600;
+
+    --text-h3: 1.375rem;
+    --text-h3--line-height: 1.3;
+    --text-h3--letter-spacing: -0.01em;
+    --text-h3--font-weight: 600;
+
+    --text-h4: 1.125rem;
+    --text-h4--line-height: 1.4;
+    --text-h4--font-weight: 600;
+
+    /* Lead paragraphs — hero subheads, section intros. */
+    --text-body-lg: 1.125rem;
+    --text-body-lg--line-height: 1.7;
+
+    /* Default prose. */
+    --text-body: 1rem;
+    --text-body--line-height: 1.7;
+
+    /* Secondary text — card copy, list descriptions, form labels. */
+    --text-body-sm: 0.875rem;
+    --text-body-sm--line-height: 1.6;
+
+    /* Metadata, timestamps, swatch labels, overlines. */
+    --text-caption: 0.75rem;
+    --text-caption--line-height: 1.5;
+    --text-caption--letter-spacing: 0.02em;
+    --text-caption--font-weight: 500;
     /* Raw brand colors, identical in light and dark. Use these only when you
        need the literal brand color (logo, illustration); prefer the semantic
        tokens below for UI so light/dark and contrast are handled for you. */
@@ -80,9 +142,11 @@
     --secondary: oklch(0.945 0.018 302);
     --secondary-foreground: var(--brand-iris);
     --muted: oklch(0.96 0.008 228);
-    /* Mist darkened to L=0.52; the raw #759AAB is only 3.01:1 on white and
-       fails AA for body text. Use --brand-mist itself for borders/large text. */
-    --muted-foreground: oklch(0.52 0.0479 227.84);
+    /* Mist darkened to L=0.48; the raw #759AAB is only 3.01:1 on white and
+       fails AA for body text. L=0.48 gives 6.33:1 on the plain background and
+       still clears 4.5:1 where the hero gradient tints it. Use --brand-mist
+       itself for borders and large text. */
+    --muted-foreground: oklch(0.48 0.0479 227.84);
     --accent: oklch(0.93 0.022 228);
     --accent-foreground: oklch(0.32 0.0479 227.84);
     --destructive: oklch(0.577 0.245 27.325);
@@ -103,6 +167,13 @@
     --sidebar-accent-foreground: oklch(0.32 0.0479 227.84);
     --sidebar-border: oklch(0.9 0.012 250);
     --sidebar-ring: var(--brand-plum);
+
+    /* Hero backdrop wash. Alphas are deliberately low: even with all three
+       gradients overlapping, muted text over them measures 4.89:1. Raising
+       these will break AA on the hero paragraph. */
+    --hero-glow-1: oklch(0.2979 0.0697 329.4 / 0.06);
+    --hero-glow-2: oklch(0.3397 0.0708 302.39 / 0.05);
+    --hero-glow-3: oklch(0.6648 0.0479 227.84 / 0.08);
 }
 
 .dark {
@@ -142,6 +213,13 @@
     --sidebar-accent-foreground: oklch(0.94 0.01 228);
     --sidebar-border: oklch(1 0 0 / 12%);
     --sidebar-ring: oklch(0.65 0.0479 227.84);
+
+    /* Dark mode tolerates more: the brand hues are lifted so they read as a
+       glow against the near-black background rather than muddying it. Stacked,
+       muted text over them still measures 5.28:1. */
+    --hero-glow-1: oklch(0.55 0.1 329.4 / 0.18);
+    --hero-glow-2: oklch(0.52 0.09 302.39 / 0.14);
+    --hero-glow-3: oklch(0.6 0.05 227.84 / 0.1);
 }
 
 @layer base {
@@ -150,6 +228,30 @@
     }
   body {
     @apply bg-background text-foreground;
+    }
+  /* Headings take the prominent face and their scale step by default, so raw
+     markup — especially MDX blog content, which has no classes — is correctly
+     styled without any per-page work. Tailwind's preflight resets headings to
+     `font-size: inherit`, so without this every MDX heading renders at body
+     size. Utilities still win over these (base layer < utilities layer), so a
+     page can opt into a different step, e.g. `text-display` on the hero. */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+    }
+  h1 {
+    @apply text-h1;
+    }
+  h2 {
+    @apply text-h2;
+    }
+  h3 {
+    @apply text-h3;
+    }
+  h4, h5, h6 {
+    @apply text-h4;
+    }
+  p {
+    @apply text-body;
     }
   html {
     @apply font-sans;

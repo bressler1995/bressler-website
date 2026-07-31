@@ -27,7 +27,8 @@ const { id, class: className, align = 'center' } = Astro.props;
 	id={id}
 	data-section
 	class:list={[
-		'flex min-h-dvh w-full snap-start flex-col',
+		// `relative` anchors anything passed to the `background` slot.
+		'relative flex min-h-dvh w-full snap-start flex-col',
 		// Top padding clears the floating nav; sections snap to their own top,
 		// so this doubles as scroll offset for anchor links.
 		'px-6 pt-28 pb-16',
@@ -35,7 +36,10 @@ const { id, class: className, align = 'center' } = Astro.props;
 		className,
 	]}
 >
-	<div class="mx-auto w-full max-w-5xl">
+	{/* Full-bleed decorative layer, outside the max-width wrapper. */}
+	<slot name="background" />
+
+	<div class="max-w-page relative mx-auto w-full">
 		<slot />
 	</div>
 </section>

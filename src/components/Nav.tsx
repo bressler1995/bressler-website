@@ -88,11 +88,13 @@ export default function Nav() {
 			<header className="fixed inset-x-0 top-4 z-50 flex justify-center px-4">
 				<nav
 					aria-label="Main"
-					className="bg-background/70 border-border/60 flex w-full max-w-5xl items-center gap-2 rounded-full border p-2 shadow-lg backdrop-blur-md"
+					// rounded-xl matches Card — the nav is a surface, so it takes the
+					// same radius step as other surfaces rather than a pill shape.
+					className="bg-background/70 border-border/60 max-w-page flex w-full items-center gap-2 rounded-xl border p-2 shadow-lg backdrop-blur-md"
 				>
 					<a
 						href="/"
-						className="hover:bg-accent ml-1 rounded-full px-3 py-1.5 text-sm font-semibold tracking-tight transition-colors"
+						className="font-heading text-body-sm hover:bg-accent ml-1 rounded-lg px-3 py-1.5 font-semibold tracking-tight transition-colors"
 					>
 						BR
 					</a>
@@ -105,10 +107,15 @@ export default function Nav() {
 									href={href}
 									aria-current={isActive(href) ? 'page' : undefined}
 									className={cn(
-										'rounded-full px-3 py-1.5 text-sm transition-colors',
+										// Nav links are controls, not prose — they take the
+										// prominent face like the buttons beside them.
+										'font-heading text-body-sm rounded-lg px-3 py-1.5 transition-colors',
+										// Active page reads like a primary button; hover uses
+										// the secondary pair. Same tokens as Button, so nav
+										// states stay consistent with the rest of the system.
 										isActive(href)
-											? 'bg-secondary text-secondary-foreground font-medium'
-											: 'text-muted-foreground hover:text-foreground hover:bg-accent'
+											? 'bg-primary text-primary-foreground hover:bg-primary/80 font-medium'
+											: 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
 									)}
 								>
 									{label}
@@ -120,7 +127,7 @@ export default function Nav() {
 					<div className="ml-auto flex items-center gap-1">
 						<Button
 							variant="ghost"
-							size="icon"
+							size="icon-sm"
 							aria-label="Search"
 							onClick={() => setSearchOpen(true)}
 						>
@@ -129,14 +136,16 @@ export default function Nav() {
 
 						<Button
 							variant="ghost"
-							size="icon"
+							size="icon-sm"
 							aria-label="Toggle theme"
 							onClick={toggleTheme}
 						>
 							{isDark ? <Sun /> : <Moon />}
 						</Button>
 
-						<Button size="sm" className="rounded-full" onClick={() => go('/contact')}>
+						{/* Default size per the standard: this is a primary call to
+						    action, not dense chrome like the icon buttons beside it. */}
+						<Button onClick={() => go('/contact')}>
 							Hire me
 						</Button>
 
@@ -145,7 +154,7 @@ export default function Nav() {
 							<SheetTrigger asChild>
 								<Button
 									variant="ghost"
-									size="icon"
+									size="icon-sm"
 									aria-label="Open menu"
 									className="md:hidden"
 								>
@@ -162,10 +171,10 @@ export default function Nav() {
 											<a
 												href={href}
 												className={cn(
-													'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+													'font-heading text-body-sm flex items-center gap-3 rounded-lg px-3 py-2 transition-colors',
 													isActive(href)
-														? 'bg-secondary text-secondary-foreground font-medium'
-														: 'text-muted-foreground hover:text-foreground hover:bg-accent'
+														? 'bg-primary text-primary-foreground hover:bg-primary/80 font-medium'
+														: 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
 												)}
 											>
 												<Icon className="size-4" />

@@ -1,0 +1,18 @@
+---
+/**
+ * Decorative rotating wireframe globe. Purely a background layer — it carries
+ * no meaning, so it's hidden from assistive tech and ignores pointer events.
+ */
+---
+
+<canvas
+	data-hero-globe
+	aria-hidden="true"
+	class="pointer-events-none absolute inset-0 size-full"
+	style="mask-image: radial-gradient(115% 115% at 68% 50%, #000 45%, transparent 100%);"
+></canvas>
+
+<script>
+	import { initHeroGlobe } from '@/scripts/hero-globe';
+	document.addEventListener('astro:page-load', initHeroGlobe);
+</script>

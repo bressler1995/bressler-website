@@ -1,27 +1,37 @@
 ---
 import Section from '@/components/Section.astro';
-import { Button } from '@/components/ui/button';
+import HeroGlobe from '@/components/HeroGlobe.astro';
+import HeroGradient from '@/components/HeroGradient.astro';
+import { buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 ---
 
-<Section id="hero">
+<Section id="hero" class="overflow-hidden">
+	<Fragment slot="background">
+		{/* Order matters: wash first, globe drawn over it. */}
+		<HeroGradient />
+		<HeroGlobe />
+	</Fragment>
 	<Badge variant="secondary" className="w-fit">Available for work</Badge>
 
-	<h1 class="mt-6 text-5xl font-semibold tracking-tight text-balance sm:text-6xl">
-		Brian Ressler
-	</h1>
+	<h1 class="text-display mt-6 text-balance">Brian Ressler</h1>
 
-	<p class="text-muted-foreground mt-4 max-w-xl text-lg text-pretty">
+	<p class="text-body-lg text-muted-foreground mt-4 max-w-xl text-pretty">
 		Software engineer building fast, accessible web applications. Placeholder
 		copy — swap this for a real positioning statement.
 	</p>
 
+	{/*
+		Links styled with `buttonVariants` rather than <Button asChild>. Radix's
+		Slot merges props onto a React element child, but Astro hands slot content
+		across the framework boundary as opaque HTML — so asChild silently drops
+		every class and renders a bare <a>. This is the correct pattern for
+		button-shaped links in .astro files, and ships no React for them.
+	*/}
 	<div class="mt-8 flex flex-wrap gap-3">
-		<Button size="lg" asChild>
-			<a href="/projects">View projects</a>
-		</Button>
-		<Button size="lg" variant="outline" asChild>
-			<a href="#skills">Skills</a>
-		</Button>
+		<a href="/projects" class={buttonVariants({ size: 'lg' })}>View projects</a>
+		<a href="#skills" class={buttonVariants({ size: 'lg', variant: 'secondary' })}>
+			Skills
+		</a>
 	</div>
 </Section>
