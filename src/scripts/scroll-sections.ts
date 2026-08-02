@@ -41,8 +41,17 @@ export function initScrollSections() {
 	teardown?.();
 	teardown = null;
 
+	// Per-page opt-out from BaseLayout's `snap` prop. Checked before anything
+	// else so an opted-out page binds no listeners at all.
+	if (document.documentElement.dataset.snap === 'false') return;
+
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-	const shortViewport = window.matchMedia('(max-height: 600px)');
+	// Read the threshold from CSS so this can't drift from the `short` variant.
+	const shortValue =
+		getComputedStyle(document.documentElement)
+			.getPropertyValue('--viewport-short')
+			.trim() || '600px';
+	const shortViewport = window.matchMedia(`(max-height: ${shortValue})`);
 	const sections = Array.from(
 		document.querySelectorAll<HTMLElement>('[data-section]')
 	);

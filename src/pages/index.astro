@@ -1,10 +1,18 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import Hero from '@/components/Hero.astro';
-import Skills from '@/components/Skills.astro';
+import Hero from '@/components/Hero';
+import Skills from '@/components/Skills';
 ---
 
-<BaseLayout title="Brian Ressler — Software Engineer">
-	<Hero />
+<BaseLayout title="Brian Ressler — Web Developer">
+	{/*
+		Hero is hydrated because the globe needs a client-side effect to drive its
+		canvas. A client:* directive applies at the boundary where Astro mounts
+		React — nested components can't opt in on their own — so it goes here
+		rather than on <HeroGlobe />.
+	*/}
+	<Hero client:load />
+
+	{/* No directive: renders to static HTML and ships no JS. */}
 	<Skills />
 </BaseLayout>

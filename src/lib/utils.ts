@@ -16,6 +16,9 @@ const twMerge = extendTailwindMerge({
 		classGroups: {
 			"font-size": [
 				{
+					// Every step in the scale must be listed here. A step that's
+					// missing gets classified as a text *colour*, and is then dropped
+					// whenever a real colour appears later in the same cn() call.
 					text: [
 						"display",
 						"h1",
@@ -25,6 +28,7 @@ const twMerge = extendTailwindMerge({
 						"body-lg",
 						"body",
 						"body-sm",
+						"label",
 						"caption",
 					],
 				},

@@ -6,15 +6,29 @@ import '@/styles/global.css';
 interface Props {
 	title?: string;
 	description?: string;
+	/**
+	 * Section-by-section snap scrolling. On by default — it's the house style.
+	 *
+	 * Turn it off for pages that are really one long document rather than a
+	 * sequence of full-height scenes (reference pages, long-form articles),
+	 * where being pulled between two distant snap points fights the reader.
+	 * This is a stopgap: as pages get purpose-built full-height layouts, they
+	 * should be able to turn it back on.
+	 */
+	snap?: boolean;
 }
 
 const {
 	title = 'Brian Ressler',
 	description = 'Portfolio of Brian Ressler — software engineer.',
+	snap = true,
 } = Astro.props;
 ---
 
-<html lang="en" class="dark">
+{/* data-snap drives both the CSS fallback and the JS controller. The router
+    swaps root attributes on navigation, so this follows the page correctly
+    without any extra wiring. */}
+<html lang="en" class="dark" data-snap={snap ? 'true' : 'false'}>
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -71,8 +85,8 @@ const {
 				class="text-muted-foreground max-w-page text-body-sm mx-auto flex flex-col gap-2 px-6 py-8 sm:flex-row sm:items-center sm:justify-between"
 			>
 				<p>© {new Date().getFullYear()} Brian Ressler</p>
-				<a href="/palette" class="hover:text-foreground transition-colors">
-					Design tokens
+				<a href="/design-system" class="hover:text-foreground transition-colors">
+					Design system
 				</a>
 			</div>
 		</footer>

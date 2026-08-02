@@ -94,7 +94,7 @@ export default function Nav() {
 				>
 					<a
 						href="/"
-						className="font-heading text-body-sm hover:bg-accent ml-1 rounded-lg px-3 py-1.5 font-semibold tracking-tight transition-colors"
+						className="font-heading text-label hover:bg-accent ml-1 rounded-lg px-3 py-1.5 tracking-tight transition-colors"
 					>
 						BR
 					</a>
@@ -114,7 +114,7 @@ export default function Nav() {
 										// the secondary pair. Same tokens as Button, so nav
 										// states stay consistent with the rest of the system.
 										isActive(href)
-											? 'bg-primary text-primary-foreground hover:bg-primary/80 font-medium'
+											? 'text-label bg-primary text-primary-foreground hover:bg-primary/80'
 											: 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
 									)}
 								>
@@ -173,7 +173,7 @@ export default function Nav() {
 												className={cn(
 													'font-heading text-body-sm flex items-center gap-3 rounded-lg px-3 py-2 transition-colors',
 													isActive(href)
-														? 'bg-primary text-primary-foreground hover:bg-primary/80 font-medium'
+														? 'text-label bg-primary text-primary-foreground hover:bg-primary/80'
 														: 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
 												)}
 											>
@@ -205,8 +205,11 @@ export default function Nav() {
 								{label}
 							</CommandItem>
 						))}
-						<CommandItem value="Design tokens" onSelect={() => go('/palette')}>
-							Design tokens
+						<CommandItem
+							value="Design system"
+							onSelect={() => go('/design-system')}
+						>
+							Design system
 						</CommandItem>
 					</CommandGroup>
 				</CommandList>

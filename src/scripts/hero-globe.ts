@@ -26,6 +26,13 @@ const LON_STEP = 20;
 const RING_SEGMENTS = 72;
 const MERIDIAN_SEGMENTS = 36;
 
+/**
+ * Below this the globe centres itself instead of sitting off to the right.
+ * Matches the `md` breakpoint (48rem) — canvas layout can't read the CSS scale,
+ * so keep the two in sync by hand.
+ */
+const WIDE_BREAKPOINT = 768;
+
 /** Camera distance in sphere radii. Larger = flatter, more orthographic. */
 const CAMERA_DISTANCE = 2.6;
 
@@ -36,13 +43,16 @@ const DEPTH_BUCKETS = 8;
 const ALPHA_FRONT = 0.55;
 const ALPHA_BACK = 0.06;
 
-const FALLBACK_COLOR = '#759AAB';
+/** Only used if --hero-globe-line can't be read for some reason. */
+const FALLBACK_COLOR = '#ffffff';
 
 const DEG = Math.PI / 180;
 
 type Line = Float32Array; // flat [x,y,z, x,y,z, ...] on the unit sphere
 
 let teardown: (() => void) | null = null;
+
+const noop = () => {};
 
 /** Unit-sphere geometry, built once — only the rotation changes per frame. */
 function buildGeometry(): Line[] {
@@ -80,15 +90,20 @@ function buildGeometry(): Line[] {
 	return lines;
 }
 
-export function initHeroGlobe() {
+/**
+ * Starts the globe and returns a disposer. The React component owns the
+ * lifecycle via useEffect, so this hands the teardown back rather than only
+ * stashing it module-side.
+ */
+export function initHeroGlobe(): () => void {
 	teardown?.();
 	teardown = null;
 
 	const canvas = document.querySelector<HTMLCanvasElement>('[data-hero-globe]');
-	if (!canvas) return;
+	if (!canvas) return noop;
 
 	const ctx = canvas.getContext('2d');
-	if (!ctx) return;
+	if (!ctx) return noop;
 
 	const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 	const geometry = buildGeometry();
@@ -104,7 +119,7 @@ export function initHeroGlobe() {
 
 	const readColor = () => {
 		const value = getComputedStyle(document.documentElement)
-			.getPropertyValue('--brand-mist')
+			.getPropertyValue('--hero-globe-line')
 			.trim();
 		color = value || FALLBACK_COLOR;
 	};
@@ -126,7 +141,7 @@ export function initHeroGlobe() {
 
 		// Sit the globe right of centre and let it bleed off the edges, tucking
 		// toward the middle on narrow screens where there's no room beside it.
-		const wide = width >= 768;
+		const wide = width >= WIDE_BREAKPOINT;
 		const radius = Math.min(width, height) * (wide ? 0.62 : 0.55);
 		const cx = width * (wide ? 0.68 : 0.5);
 		const cy = height * 0.5;
@@ -269,5 +284,10 @@ export function initHeroGlobe() {
 		reducedMotion.removeEventListener('change', onReducedMotionChange);
 		window.removeEventListener('resize', onResize);
 		document.removeEventListener('visibilitychange', onVisibilityChange);
+	};
+
+	return () => {
+		teardown?.();
+		teardown = null;
 	};
 }

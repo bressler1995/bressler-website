@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import Section from '@/components/Section.astro';
+import Section from '@/components/Section';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,15 +21,15 @@ import { Textarea } from '@/components/ui/textarea';
 		<CardContent>
 			<form class="flex flex-col gap-4">
 				<div class="flex flex-col gap-2">
-					<label for="name" class="text-body-sm font-medium">Name</label>
+					<label for="name" class="text-label">Name</label>
 					<Input id="name" name="name" placeholder="Your name" />
 				</div>
 				<div class="flex flex-col gap-2">
-					<label for="email" class="text-body-sm font-medium">Email</label>
+					<label for="email" class="text-label">Email</label>
 					<Input id="email" name="email" type="email" placeholder="you@example.com" />
 				</div>
 				<div class="flex flex-col gap-2">
-					<label for="message" class="text-body-sm font-medium">Message</label>
+					<label for="message" class="text-label">Message</label>
 					<Textarea id="message" name="message" rows={5} placeholder="What's up?" />
 				</div>
 				<Button type="submit" className="w-fit">Send</Button>

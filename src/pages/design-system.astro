@@ -1,0 +1,448 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Star } from 'lucide-react';
+
+// Swatches render from the tokens (bg-brand-*); the hex is only a label for
+// reference. If a token is ever retuned, the swatch is authoritative and this
+// string is the thing that went stale.
+const brand = [
+	{ hex: '#401F3E', cls: 'bg-brand-plum', role: 'Primary' },
+	{ hex: '#3F2E56', cls: 'bg-brand-iris', role: 'Secondary' },
+	{ hex: '#759AAB', cls: 'bg-brand-mist', role: 'Low emphasis' },
+];
+
+const architecture = [
+	{
+		tech: 'Astro',
+		where: 'src/pages/ · src/layouts/',
+		owns: 'Routing, <head>, build-time data, the document shell. Our pages and templates system.',
+	},
+	{
+		tech: 'React',
+		where: 'src/components/',
+		owns: 'Everything rendered inside a page — presentational and interactive alike.',
+	},
+];
+
+const typeScale = [
+	{ cls: 'text-display', w: 600, use: 'Hero headline. One per page, at most.', face: 'Nunito' },
+	{ cls: 'text-h1', w: 600, use: 'Page title. Default for <h1>.', face: 'Nunito' },
+	{ cls: 'text-h2', w: 600, use: 'Section heading. Default for <h2>.', face: 'Nunito' },
+	{ cls: 'text-h3', w: 600, use: 'Card and list-item titles. Default for <h3>.', face: 'Nunito' },
+	{ cls: 'text-h4', w: 600, use: 'Minor headings. Default for <h4>–<h6>.', face: 'Nunito' },
+	{ cls: 'text-body-lg', w: 400, use: 'Lead paragraphs, hero subheads.', face: 'Open Sans' },
+	{ cls: 'text-body', w: 400, use: 'Default prose. Applied to <p>.', face: 'Open Sans' },
+	{ cls: 'text-body-sm', w: 400, use: 'Card copy, list descriptions, nav links.', face: 'Open Sans' },
+	{
+		cls: 'text-label',
+		w: 600,
+		use: 'Sub-headings inside cards and panels. Same size as body-sm — weight is the difference.',
+		face: 'Open Sans',
+	},
+	{ cls: 'text-caption', w: 500, use: 'Metadata, timestamps, overlines.', face: 'Open Sans' },
+];
+
+const breakpoints = [
+	{ name: 'sm', value: '40rem / 640px', use: 'Large phone, small tablet.' },
+	{ name: 'md', value: '48rem / 768px', use: 'Tablet. Nav collapses to a sheet below this.' },
+	{ name: 'lg', value: '64rem / 1024px', use: 'Small laptop.' },
+	{ name: 'xl', value: '80rem / 1280px', use: 'Desktop.' },
+	{ name: '2xl', value: '96rem / 1536px', use: 'Large desktop.' },
+	{ name: '3xl', value: '100rem / 1600px', use: 'Page shell is maxed out; gutters grow past this.' },
+];
+
+const containers = [
+	{ cls: 'max-w-page', value: '1600px', use: 'Page shell — nav, Section, footer.' },
+	{ cls: 'max-w-content', value: '1280px', use: 'Content-led pages: forms, article shells.' },
+	{ cls: 'max-w-prose', value: '65ch', use: 'Long-form text. Blog bodies, sustained paragraphs.' },
+];
+
+const semantic = [
+	'bg-background',
+	'bg-card',
+	'bg-primary',
+	'bg-secondary',
+	'bg-muted',
+	'bg-accent',
+	'bg-border',
+	'bg-destructive',
+];
+---
+
+{/* Reference page: one long document, not a sequence of scenes. Snapping
+    between two distant points makes it hard to read. */}
+<BaseLayout title="Design system — Brian Ressler" snap={false}>
+	<Section align="start">
+		<h1 class="text-h1">Design system</h1>
+		<p class="text-muted-foreground mt-2">
+			Reference for building pages. Toggle the theme in the nav to check both
+			modes.
+		</p>
+
+	<Card className="mt-8">
+		<CardHeader>
+			<CardTitle>Architecture</CardTitle>
+		</CardHeader>
+		<CardContent className="space-y-6">
+			<div class="overflow-x-auto">
+				<table class="w-full text-left">
+					<thead>
+						<tr class="text-muted-foreground text-caption">
+							<th class="py-1 pr-4">Layer</th>
+							<th class="py-1 pr-4">Lives in</th>
+							<th class="py-1">Owns</th>
+						</tr>
+					</thead>
+					<tbody>
+						{
+							architecture.map((a) => (
+								<tr class="border-border/60 border-t align-top">
+									<td class="py-1.5 pr-4 font-mono text-caption">{a.tech}</td>
+									<td class="text-muted-foreground py-1.5 pr-4 font-mono text-caption">
+										{a.where}
+									</td>
+									<td class="text-muted-foreground py-1.5 text-caption">{a.owns}</td>
+								</tr>
+							))
+						}
+					</tbody>
+				</table>
+			</div>
+
+			<div class="border-t pt-4">
+				<p class="text-label">Hydration</p>
+				<p class="text-muted-foreground text-caption mt-1">
+					Components are static by default — no <code>client:*</code> means they
+					render to HTML and ship zero JS. <code>Skills</code> is a plain React
+					component and costs nothing at runtime.
+				</p>
+				<p class="text-muted-foreground text-caption mt-2">
+					The rule that shapes component boundaries:
+					<strong class="text-foreground">
+						a client directive applies only where Astro mounts React, and nested
+						components can't opt in on their own.
+					</strong>
+					<code>HeroGlobe</code> needs an effect to drive its canvas, so the
+					directive goes on its outermost Astro-mounted ancestor:
+				</p>
+				<pre
+					class="border-border/60 text-caption mt-3 overflow-x-auto rounded-lg border px-3 py-2 font-mono"><code>&lt;Hero client:load /&gt;   {/* globe animates */}
+&lt;Skills /&gt;              {/* static, 0 KB */}</code></pre>
+			</div>
+
+			<div class="border-t pt-4">
+				<p class="text-label">Composition</p>
+				<p class="text-muted-foreground text-caption mt-1">
+					Children passed from a <code>.astro</code> page into a hydrated island
+					are rendered as static HTML and can't become interactive. When a whole
+					subtree needs interactivity, compose it React-in-React and mount it
+					once. That's why <code>Hero</code> imports <code>Section</code> directly
+					rather than being wrapped by the page.
+				</p>
+				<p class="text-muted-foreground text-caption mt-2">
+					For the same reason <code>Section</code> takes a
+					<code>background</code> <em>prop</em> rather than a named slot — Astro
+					can't pass React elements across the boundary, but React callers can.
+				</p>
+			</div>
+
+			<div class="border-t pt-4">
+				<p class="text-label">Gotchas</p>
+				<ul class="text-muted-foreground text-caption mt-1 list-disc space-y-1 pl-4">
+					<li>
+						React components take <code>className</code>, not <code>class</code>.
+						Astro passes props through verbatim, so <code>class</code> silently
+						does nothing — it builds fine and just drops the styles.
+					</li>
+					<li>
+						<code>&lt;Button asChild&gt;</code> does not work from
+						<code>.astro</code>: Radix clones a React element child, and Astro
+						hands slot content over as opaque HTML. Use
+						<code>buttonVariants(&#123;…&#125;)</code> on a plain
+						<code>&lt;a&gt;</code> instead.
+					</li>
+					<li>
+						Custom type-scale classes go through <code>cn()</code>, which is
+						extended in <code>lib/utils.ts</code> so tailwind-merge doesn't
+						mistake <code>text-body-sm</code> for a colour and strip it.
+					</li>
+				</ul>
+			</div>
+		</CardContent>
+	</Card>
+
+	<Card className="mt-6">
+		<CardHeader>
+			<CardTitle>Typography</CardTitle>
+		</CardHeader>
+		<CardContent className="space-y-6">
+			<p class="text-muted-foreground text-body-sm">
+				Use the semantic step, not a raw Tailwind size — <code>text-h2</code>,
+				never <code>text-3xl</code>. Each step carries its own size,
+				line-height, letter-spacing <em>and weight</em>, so one utility fully
+				describes the style.
+				<strong class="text-foreground">Nunito</strong> is for headings and
+				controls (buttons, nav links);
+				<strong class="text-foreground">Open Sans</strong> is for everything
+				else. Heading elements get their step automatically, so plain markdown
+				is styled without any classes.
+			</p>
+
+			<p class="text-muted-foreground text-body-sm">
+				<strong class="text-foreground">Don't set weight by hand on a scale
+				step.</strong> If you reach for <code>font-medium</code>, the step is
+				probably wrong — <code>text-label</code> exists precisely because
+				<code>text-body-sm font-medium</code> was being repeated. Inline
+				<code>&lt;strong&gt;</code> is pinned to 600 in the base layer, so
+				emphasis never needs a class either. The only weight utility left in
+				the app is <code>tracking-tight</code> on the wordmark, which is a
+				deliberate one-off.
+			</p>
+
+			<div class="flex flex-col gap-5 border-t pt-4">
+				{
+					typeScale.map((t) => (
+						<div class="flex flex-col gap-1">
+							<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+								<code class="text-muted-foreground shrink-0 font-mono text-caption">
+									{t.cls}
+								</code>
+								<span class="text-muted-foreground shrink-0 font-mono text-caption">
+									{t.face}
+								</span>
+								<span class="text-muted-foreground shrink-0 font-mono text-caption">
+									{t.w}
+								</span>
+							</div>
+							<p class={`${t.cls} ${t.face === 'Nunito' ? 'font-heading' : ''}`}>
+								The quick brown fox
+							</p>
+							<p class="text-muted-foreground text-caption">{t.use}</p>
+						</div>
+					))
+				}
+			</div>
+		</CardContent>
+	</Card>
+
+	<Card className="mt-6">
+		<CardHeader>
+			<CardTitle>Layout</CardTitle>
+		</CardHeader>
+		<CardContent className="space-y-6">
+			<div>
+				<p class="text-label">Breakpoints</p>
+				<p class="text-muted-foreground text-caption mt-1">
+					Tailwind defaults, plus <code>3xl</code> aligned to the page shell.
+					Mobile-first — style the small case, then add prefixes upward.
+				</p>
+				<div class="mt-3 overflow-x-auto">
+					<table class="w-full text-left">
+						<thead>
+							<tr class="text-muted-foreground text-caption">
+								<th class="py-1 pr-4">Prefix</th>
+								<th class="py-1 pr-4">Min width</th>
+								<th class="py-1">Use</th>
+							</tr>
+						</thead>
+						<tbody>
+							{
+								breakpoints.map((b) => (
+									<tr class="border-border/60 border-t">
+										<td class="py-1.5 pr-4 font-mono text-caption">{b.name}</td>
+										<td class="text-muted-foreground py-1.5 pr-4 font-mono text-caption">
+											{b.value}
+										</td>
+										<td class="text-muted-foreground py-1.5 text-caption">{b.use}</td>
+									</tr>
+								))
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="border-t pt-4">
+				<p class="text-label">Container widths</p>
+				<p class="text-muted-foreground text-caption mt-1">
+					Pick by content type. <code>max-w-page</code> is a shell width, not a
+					reading width — prose inside a full-width section still needs
+					<code>max-w-prose</code>.
+				</p>
+				<div class="mt-3 space-y-3">
+					{
+						containers.map((c) => (
+							<div>
+								<div class="flex flex-wrap items-baseline gap-x-3">
+									<code class="font-mono text-caption">{c.cls}</code>
+									<span class="text-muted-foreground font-mono text-caption">
+										{c.value}
+									</span>
+								</div>
+								<div class={`${c.cls} bg-secondary mt-1 h-2 rounded-sm`} />
+								<p class="text-muted-foreground text-caption mt-1">{c.use}</p>
+							</div>
+						))
+					}
+				</div>
+			</div>
+
+			<div class="border-t pt-4">
+				<p class="text-label">Viewport height</p>
+				<p class="text-muted-foreground text-caption mt-1">
+					Sections are <code>min-h-dvh</code>, so vertical space constrains the
+					layout as much as width does. The awkward viewport isn't a narrow
+					phone — it's a <strong class="text-foreground">short, wide</strong>
+					one: a laptop at 1440×720, a landscape phone, or any browser at 150%
+					zoom. That's where a viewport-tall section stops fitting.
+				</p>
+				<div class="mt-3 space-y-2">
+					<div class="flex flex-wrap items-baseline gap-x-3">
+						<code class="font-mono text-caption">short:</code>
+						<span class="text-muted-foreground font-mono text-caption">
+							height ≤ 600px
+						</span>
+					</div>
+					<p class="text-muted-foreground text-caption">
+						Use it to trim vertical rhythm where headroom is scarce — e.g.
+						<code>short:pt-20</code> to pull a section up under the nav. Scroll
+						snapping already disables itself below this height, since mandatory
+						snapping fights the user when a section can't fit.
+					</p>
+					<p
+						class="border-border/60 text-caption rounded-lg border border-dashed px-3 py-2"
+					>
+						<span class="short:hidden">
+							Your viewport is <strong>taller</strong> than 600px —
+							the <code>short:</code> variant is inactive.
+						</span>
+						<span class="hidden short:inline">
+							Your viewport is <strong>600px or shorter</strong> —
+							the <code>short:</code> variant is active right now.
+						</span>
+					</p>
+				</div>
+			</div>
+
+			<div class="border-t pt-4">
+				<p class="text-label">Scroll behaviour</p>
+				<p class="text-muted-foreground text-caption mt-1">
+					Snap scrolling is on by default — it's the house style, and full-height
+					sections assume it. Pages that are really one long document rather than
+					a sequence of scenes can opt out:
+				</p>
+				<pre
+					class="border-border/60 text-caption mt-3 overflow-x-auto rounded-lg border px-3 py-2 font-mono"><code>&lt;BaseLayout title="…" snap=&#123;false&#125;&gt;</code></pre>
+				<p class="text-muted-foreground text-caption mt-2">
+					That drops both the CSS snapping and the JS scroll controller, so an
+					opted-out page binds no scroll listeners at all. This page uses it —
+					which is why scrolling here feels normal.
+					<strong class="text-foreground">Treat it as a stopgap:</strong>
+					as pages get purpose-built full-height layouts, they should turn it
+					back on.
+				</p>
+			</div>
+		</CardContent>
+	</Card>
+
+	<Card className="mt-6">
+		<CardHeader>
+			<CardTitle>Brand palette</CardTitle>
+		</CardHeader>
+		<CardContent className="space-y-6">
+			<div class="grid gap-4 sm:grid-cols-3">
+				{
+					brand.map((c) => (
+						<div>
+							<div class={`${c.cls} h-16 rounded-lg border`} />
+							<p class="mt-2 text-label">{c.role}</p>
+							<p class="text-muted-foreground font-mono text-caption">{c.hex}</p>
+						</div>
+					))
+				}
+			</div>
+
+			<div>
+				<p class="mb-2 text-label">Semantic tokens</p>
+				<div class="flex flex-wrap gap-2">
+					{
+						semantic.map((cls) => (
+							<div class="text-center">
+								<div class={`${cls} size-12 rounded-md border`} />
+								<p class="text-muted-foreground mt-1 font-mono text-caption">
+									{cls.replace('bg-', '')}
+								</p>
+							</div>
+						))
+					}
+				</div>
+			</div>
+
+			<div class="space-y-3 border-t pt-4">
+				<p class="text-label">Button variants</p>
+				<p class="text-muted-foreground text-caption">
+					Primary and secondary are the standard pair for calls to action.
+				</p>
+				<div class="flex flex-wrap items-center gap-3">
+					<Button>Primary</Button>
+					<Button variant="secondary">Secondary</Button>
+					<Button variant="outline">Outline</Button>
+					<Button variant="ghost">Ghost</Button>
+					<Button variant="destructive">Destructive</Button>
+					<Button variant="link">Link</Button>
+				</div>
+			</div>
+
+			<div class="space-y-3 border-t pt-4">
+				<p class="text-label">Button sizes</p>
+				<p class="text-muted-foreground text-caption">
+					<strong class="text-foreground">default</strong> (h-10) and
+					<strong class="text-foreground">lg</strong> (h-12) are the
+					standard sizes. <code>xs</code> and <code>sm</code> are compact variants
+					for dense UI like the nav bar — don't use them as page-level actions.
+				</p>
+				<div class="flex flex-wrap items-end gap-3">
+					{
+						(['xs', 'sm', 'default', 'lg'] as const).map((size) => (
+							<div class="flex flex-col items-center gap-1.5">
+								<Button size={size}>{size}</Button>
+								<span class="text-muted-foreground font-mono text-caption">
+									{size}
+								</span>
+							</div>
+						))
+					}
+				</div>
+				<div class="flex flex-wrap items-end gap-3">
+					{
+						(['icon-xs', 'icon-sm', 'icon', 'icon-lg'] as const).map((size) => (
+							<div class="flex flex-col items-center gap-1.5">
+								<Button size={size} variant="secondary" aria-label={size}>
+									<Star />
+								</Button>
+								<span class="text-muted-foreground font-mono text-caption">
+									{size}
+								</span>
+							</div>
+						))
+					}
+				</div>
+			</div>
+
+			<div class="space-y-3 border-t pt-4">
+				<p class="text-label">Badges</p>
+				<div class="flex flex-wrap gap-2">
+					<Badge>Default</Badge>
+					<Badge variant="secondary">Secondary</Badge>
+					<Badge variant="outline">Outline</Badge>
+					<Badge variant="destructive">Destructive</Badge>
+				</div>
+			</div>
+			</CardContent>
+		</Card>
+	</Section>
+</BaseLayout>

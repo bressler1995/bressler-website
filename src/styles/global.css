@@ -6,18 +6,49 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Height breakpoint. Because sections are min-h-dvh, vertical space constrains
+   the layout as much as horizontal does — the risky viewport isn't a narrow
+   phone but a *short, wide* one: laptops at 1440x720, landscape phones, or any
+   browser at 150% zoom. Those are where a viewport-tall section stops fitting.
+
+   Deliberately NOT declared as --breakpoint-short in @theme: that namespace
+   generates min-*width* variants, so `short:` would end up meaning the opposite
+   of what it reads like. A custom variant keeps it height-based and one-way. */
+@custom-variant short (@media (height <= 600px));
+
 @theme inline {
     /* Nunito carries headings and buttons — anything that should feel
        prominent. Open Sans carries body copy and incidental text. */
     --font-heading: 'Nunito Variable', ui-sans-serif, system-ui, sans-serif;
     --font-sans: 'Open Sans Variable', ui-sans-serif, system-ui, sans-serif;
 
-    /* Standard page width. Sections, the nav and the footer all reference this
-       so their left and right edges line up. Note this is a *container* width,
-       not a reading width — long-form prose inside a section should still be
-       constrained further (max-w-prose or similar), since 1600px of body text
-       is far past a comfortable line length. */
+    /* --- Breakpoints --------------------------------------------------------
+       Tailwind's defaults, kept as-is because they're well understood:
+         sm  40rem / 640px   large phone, small tablet
+         md  48rem / 768px   tablet — also where the nav collapses to a sheet
+         lg  64rem / 1024px  small laptop
+         xl  80rem / 1280px  desktop
+         2xl 96rem / 1536px  large desktop
+       Plus one addition: 3xl matches --container-page, so there's a breakpoint
+       at the width where the page shell stops growing and side gutters start
+       expanding instead. Without it the shell maxes out past every breakpoint. */
+    --breakpoint-3xl: 100rem; /* 1600px */
+
+    /* --- Container widths ---------------------------------------------------
+       Three tiers, widest to narrowest. Pick by content type, not by habit:
+
+         max-w-page     1600px  page shell — nav, Section, footer. Their edges
+                                line up because they all use this.
+         max-w-content  1280px  content-led pages: forms, article shells,
+                                anything that shouldn't span the full shell.
+         max-w-prose      65ch  long-form text. Tailwind built-in; use it for
+                                blog post bodies and any sustained paragraphs.
+
+       Note max-w-page is a *container* width, not a reading width — 1600px of
+       body text is far past a comfortable line length, so prose nested inside a
+       full-width section still needs its own constraint. */
     --container-page: 100rem; /* 1600px */
+    --container-content: 80rem; /* 1280px */
 
     /* --- Type scale ---------------------------------------------------------
        Semantic names, not raw steps: use `text-h2` for a section heading rather
@@ -53,17 +84,31 @@
     --text-h4--line-height: 1.4;
     --text-h4--font-weight: 600;
 
+    /* Body steps declare weight 400 explicitly rather than inheriting it, so a
+       step never renders differently depending on where it's nested. */
+
     /* Lead paragraphs — hero subheads, section intros. */
     --text-body-lg: 1.125rem;
     --text-body-lg--line-height: 1.7;
+    --text-body-lg--font-weight: 400;
 
     /* Default prose. */
     --text-body: 1rem;
     --text-body--line-height: 1.7;
+    --text-body--font-weight: 400;
 
-    /* Secondary text — card copy, list descriptions, form labels. */
+    /* Secondary text — card copy, list descriptions. */
     --text-body-sm: 0.875rem;
     --text-body-sm--line-height: 1.6;
+    --text-body-sm--font-weight: 400;
+
+    /* Sub-headings inside cards and panels: the "small but emphasised"
+       pattern. Same size as body-sm — weight is the whole difference, which is
+       exactly why it's a step rather than `text-body-sm font-medium` repeated
+       at every call site. */
+    --text-label: 0.875rem;
+    --text-label--line-height: 1.5;
+    --text-label--font-weight: 600;
 
     /* Metadata, timestamps, swatch labels, overlines. */
     --text-caption: 0.75rem;
@@ -117,110 +162,143 @@
 }
 
 :root {
+    /* The `short` breakpoint's value, exposed for JS. CSS media conditions
+       can't reference custom properties, so the literal still lives in the
+       @custom-variant above — scripts read this rather than hardcoding a copy. */
+    --viewport-short: 600px;
+
     /* --- Brand palette (source of truth) ------------------------------------
-       plum  #401F3E  primary brand color
+       plum  #401F3E  primary brand colour
        iris  #3F2E56  secondary / supporting
        mist  #759AAB  low-emphasis accents, borders, large text only
-       These are the exact hexes, expressed in oklch so they can be lightened
-       or darkened by adjusting the first value without hue drift. */
-    --brand-plum: oklch(0.2979 0.0697 329.4);
-    --brand-iris: oklch(0.3397 0.0708 302.39);
-    --brand-mist: oklch(0.6648 0.0479 227.84);
+
+       The semantic tokens below reference these wherever the value *is* the
+       brand colour. Tints and shades are written as their own hex: deriving
+       them in CSS needs color-mix() or relative colour syntax, and both compile
+       to @supports fallbacks here that resolve to the wrong colour. */
+    --brand-plum: #401f3e;
+    --brand-iris: #3f2e56;
+    --brand-mist: #759aab;
 
     /* --- Semantic tokens (light) -------------------------------------------- */
-    --background: oklch(0.994 0.003 325);
-    --foreground: oklch(0.22 0.03 322);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.22 0.03 322);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.22 0.03 322);
-    /* Plum at full strength; white text on it measures 13.54:1. */
+    --background: #fefcfe;
+    --foreground: #221521;
+    --card: #ffffff;
+    --card-foreground: #221521;
+    --popover: #ffffff;
+    --popover-foreground: #221521;
+
+    /* Plum at full strength; its label measures 13.5:1. */
     --primary: var(--brand-plum);
-    --primary-foreground: oklch(0.985 0.003 325);
-    /* Iris is too dark to sit next to plum as a surface (1.17:1 apart), so the
-       surface is a pale iris tint and the literal brand color carries the text. */
-    --secondary: oklch(0.945 0.018 302);
+    --primary-foreground: #fbf9fb;
+
+    /* Iris is too dark to sit beside plum as a surface (1.17:1 apart), so the
+       surface is a pale iris tint and the brand colour carries the text. */
+    --secondary: #efeaf7;
     --secondary-foreground: var(--brand-iris);
-    --muted: oklch(0.96 0.008 228);
-    /* Mist darkened to L=0.48; the raw #759AAB is only 3.01:1 on white and
-       fails AA for body text. L=0.48 gives 6.33:1 on the plain background and
-       still clears 4.5:1 where the hero gradient tints it. Use --brand-mist
-       itself for borders and large text. */
-    --muted-foreground: oklch(0.48 0.0479 227.84);
-    --accent: oklch(0.93 0.022 228);
-    --accent-foreground: oklch(0.32 0.0479 227.84);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.9 0.012 250);
-    --input: oklch(0.9 0.012 250);
+
+    --muted: #edf3f6;
+    /* Mist darkened for text — raw #759AAB is only 3.01:1 on white and fails
+       AA. This is 6.33:1. Use --brand-mist itself for borders and large text. */
+    --muted-foreground: #406373;
+
+    --accent: #daebf4;
+    --accent-foreground: #143846;
+
+    --destructive: #e7000b;
+    --border: #d6e0e4;
+    --input: #d6e0e4;
     --ring: var(--brand-plum);
-    --chart-1: oklch(0.45 0.09 329.4);
-    --chart-2: oklch(0.52 0.09 302.39);
-    --chart-3: oklch(0.6 0.07 262);
+
+    /* Chart ramp: 1/2/4 track the brand hues; 3 and 5 reach past them so
+       adjacent series stay distinguishable. */
+    --chart-1: #71426d;
+    --chart-2: #735c94;
+    --chart-3: #6981ab;
     --chart-4: var(--brand-mist);
-    --chart-5: oklch(0.75 0.045 200);
+    --chart-5: #8db7b9;
+
     --radius: 0.625rem;
-    --sidebar: oklch(0.975 0.006 322);
-    --sidebar-foreground: oklch(0.22 0.03 322);
+
+    --sidebar: #f9f5f9;
+    --sidebar-foreground: #221521;
     --sidebar-primary: var(--brand-plum);
-    --sidebar-primary-foreground: oklch(0.985 0.003 325);
-    --sidebar-accent: oklch(0.93 0.022 228);
-    --sidebar-accent-foreground: oklch(0.32 0.0479 227.84);
-    --sidebar-border: oklch(0.9 0.012 250);
+    --sidebar-primary-foreground: #fbf9fb;
+    --sidebar-accent: #daebf4;
+    --sidebar-accent-foreground: #143846;
+    --sidebar-border: #d6e0e4;
     --sidebar-ring: var(--brand-plum);
 
-    /* Hero backdrop wash. Alphas are deliberately low: even with all three
-       gradients overlapping, muted text over them measures 4.89:1. Raising
-       these will break AA on the hero paragraph. */
-    --hero-glow-1: oklch(0.2979 0.0697 329.4 / 0.06);
-    --hero-glow-2: oklch(0.3397 0.0708 302.39 / 0.05);
-    --hero-glow-3: oklch(0.6648 0.0479 227.84 / 0.08);
+    /* Hero globe. Lines are drawn at full strength on the canvas, then knocked
+       back by a scrim of the page background — that keeps the wireframe crisp
+       rather than thin-and-grey. Light mode can't use white (invisible on a
+       near-white page), so it takes a muted plum.
+       --hero-globe-scrim is --background plus alpha; keep the two in sync. */
+    --hero-globe-line: #5f4f5d;
+    --hero-globe-scrim: #fefcfe8c;
+
+    /* Hero backdrop wash: the brand colours at very low alpha. Even with all
+       three gradients overlapping, muted text over them measures 4.89:1 —
+       raising these breaks AA on the hero paragraph. */
+    --hero-glow-1: #401f3e0f;
+    --hero-glow-2: #3f2e560d;
+    --hero-glow-3: #759aab14;
 }
 
 .dark {
-    /* Dark mode keeps the brand hues but raises lightness — the raw hexes are
-       far too dark to read against a dark background. Hue and chroma are
-       unchanged from the brand colors, so it still reads as the same palette. */
-    --background: oklch(0.165 0.018 322);
-    --foreground: oklch(0.96 0.006 325);
-    --card: oklch(0.21 0.022 322);
-    --card-foreground: oklch(0.96 0.006 325);
-    --popover: oklch(0.21 0.022 322);
-    --popover-foreground: oklch(0.96 0.006 325);
-    /* Plum lifted to L=0.72 (#be95ba) with a dark label: 7.13:1. */
-    --primary: oklch(0.72 0.0697 329.4);
-    --primary-foreground: oklch(0.2 0.03 329);
-    --secondary: oklch(0.3 0.035 302.39);
-    --secondary-foreground: oklch(0.93 0.02 302.39);
-    --muted: oklch(0.27 0.02 240);
-    /* Mist lifted to L=0.72: 7.89:1 on the page background. */
-    --muted-foreground: oklch(0.72 0.0479 227.84);
-    --accent: oklch(0.32 0.03 250);
-    --accent-foreground: oklch(0.94 0.01 228);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 12%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.65 0.0479 227.84);
-    --chart-1: oklch(0.72 0.0697 329.4);
-    --chart-2: oklch(0.7 0.075 302.39);
-    --chart-3: oklch(0.68 0.06 262);
-    --chart-4: oklch(0.72 0.0479 227.84);
-    --chart-5: oklch(0.8 0.045 200);
-    --sidebar: oklch(0.19 0.02 322);
-    --sidebar-foreground: oklch(0.96 0.006 325);
-    --sidebar-primary: oklch(0.72 0.0697 329.4);
-    --sidebar-primary-foreground: oklch(0.2 0.03 329);
-    --sidebar-accent: oklch(0.32 0.03 250);
-    --sidebar-accent-foreground: oklch(0.94 0.01 228);
-    --sidebar-border: oklch(1 0 0 / 12%);
-    --sidebar-ring: oklch(0.65 0.0479 227.84);
+    --background: #130c12;
+    --foreground: #f4f0f4;
+    --card: #1e151d;
+    --card-foreground: #f4f0f4;
+    --popover: #1e151d;
+    --popover-foreground: #f4f0f4;
 
-    /* Dark mode tolerates more: the brand hues are lifted so they read as a
-       glow against the near-black background rather than muddying it. Stacked,
-       muted text over them still measures 5.28:1. */
-    --hero-glow-1: oklch(0.55 0.1 329.4 / 0.18);
-    --hero-glow-2: oklch(0.52 0.09 302.39 / 0.14);
-    --hero-glow-3: oklch(0.6 0.05 227.84 / 0.1);
+    /* The raw brand hex is far too dark to read here, so plum is lifted; its
+       dark label measures 7.13:1. */
+    --primary: #be95ba;
+    --primary-foreground: #1e111d;
+
+    --secondary: #312a3d;
+    --secondary-foreground: #eae5f3;
+
+    --muted: #1c292e;
+    --muted-foreground: #86abbc;
+
+    --accent: #22363f;
+    --accent-foreground: #e5edf0;
+
+    --destructive: #ff6467;
+    --border: #ffffff1f;
+    --input: #ffffff26;
+    --ring: #7195a6;
+
+    --chart-1: #be95ba;
+    --chart-2: #a794c6;
+    --chart-3: #8499be;
+    --chart-4: #86abbc;
+    --chart-5: #9cc7c9;
+
+    --sidebar: #191118;
+    --sidebar-foreground: #f4f0f4;
+    --sidebar-primary: #be95ba;
+    --sidebar-primary-foreground: #1e111d;
+    --sidebar-accent: #22363f;
+    --sidebar-accent-foreground: #e5edf0;
+    --sidebar-border: #ffffff1f;
+    --sidebar-ring: #7195a6;
+
+    /* White wireframe against the near-black page, veiled by the scrim.
+       Mirrors --background above at 55%. */
+    --hero-globe-line: #ffffff;
+    --hero-globe-scrim: #130c128c;
+
+    /* Lifted brand hues so they read as a glow rather than muddying the page.
+       Stacked, muted text over them measures 5.28:1. */
+    --hero-glow-1: #925b8e2e;
+    --hero-glow-2: #735c9424;
+    --hero-glow-3: #6087981a;
 }
+
 
 @layer base {
   * {
@@ -253,6 +331,19 @@
   p {
     @apply text-body;
     }
+  /* Inline emphasis. Preflight uses `bolder`, which resolves *relative* to the
+     surrounding weight and lands near 700 — heavier than our 600 headings, so
+     emphasis inside body copy ended up shoutier than the heading above it.
+     Pinning it here means <strong> never needs a weight class. */
+  strong, b {
+    @apply font-semibold;
+    }
+  /* Preflight bolds table headers. Inheriting instead lets whichever type step
+     is applied to the table or row drive the weight, so headers don't need a
+     weight class at every call site. */
+  th {
+    font-weight: inherit;
+    }
   html {
     @apply font-sans;
     /* One viewport per section, snapping to each in turn. The document itself
@@ -265,12 +356,26 @@
      actually fit — short windows, landscape phones, or high browser zoom. It's
      also disorienting for anyone who has asked for reduced motion. Drop back to
      ordinary scrolling in those cases; the layout is unchanged, only the
-     snapping stops. */
-  @media (prefers-reduced-motion: reduce), (max-height: 600px) {
+     snapping stops.
+
+     The height case goes through the `short` variant rather than repeating the
+     media query, so 600 is defined in exactly one place. */
+  @media (prefers-reduced-motion: reduce) {
     html {
       scroll-snap-type: none;
       scroll-behavior: auto;
       }
+    }
+  @variant short {
+    html {
+      scroll-snap-type: none;
+      scroll-behavior: auto;
+      }
+    }
+  /* Per-page opt-out, set by BaseLayout's `snap` prop. Scrolling goes back to
+     normal; smooth behaviour is kept so in-page anchors still glide. */
+  html[data-snap='false'] {
+    scroll-snap-type: none;
     }
   /* Set by the scroll controller once it takes over. Native snapping and
      smooth-scroll would both fight its per-frame scrollTo calls, so they're
