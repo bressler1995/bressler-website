@@ -44,6 +44,29 @@
     }
   }
 
+/* Section surfaces. More than a background: a slate section is light enough
+   that two tokens have to be retargeted inside it, so the utility carries those
+   overrides rather than every call site remembering them. */
+@utility surface-base {
+  background-color: var(--surface-base);
+  }
+
+@utility surface-alt {
+  background-color: var(--surface-alt);
+  }
+
+@utility surface-slate {
+  background-color: var(--surface-slate);
+  /* A slate-on-slate secondary button would vanish, so it flips to white. */
+  --secondary: #ffffff;
+  --secondary-foreground: var(--indigo-300);
+  --secondary-hover: #e8eaf5;
+  --secondary-active: #d3d7ea;
+  /* Slate is L52% — far lighter than the other surfaces — so the global 70%
+     muted alpha only reaches 3.66:1 here. 85% brings it back over AA. */
+  --muted-foreground: #ffffffd9;
+  }
+
 @theme inline {
     /* Nunito carries headings and buttons — anything that should feel
        prominent. Open Sans carries body copy and incidental text. */
@@ -161,9 +184,9 @@
     /* Raw brand colors, identical in light and dark. Use these only when you
        need the literal brand color (logo, illustration); prefer the semantic
        tokens below for UI so light/dark and contrast are handled for you. */
-    --color-brand-plum: var(--brand-plum);
-    --color-brand-magenta: var(--brand-magenta);
-    --color-brand-citron: var(--brand-citron);
+    --color-brand-indigo: var(--brand-indigo);
+
+    --color-brand-accent: var(--brand-accent);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -196,6 +219,13 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+    --color-surface-base: var(--surface-base);
+    --color-surface-alt: var(--surface-alt);
+    --color-surface-slate: var(--surface-slate);
+    --color-primary-hover: var(--primary-hover);
+    --color-primary-active: var(--primary-active);
+    --color-secondary-hover: var(--secondary-hover);
+    --color-secondary-active: var(--secondary-active);
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -225,53 +255,34 @@
 
        Steps run light (low number) to dark (high), and the comment on each is
        its OKLCH lightness — that's the thing that was actually chosen. Saturation
-       drops as steps approach white or black, which is why a pale plum reads as
+       drops as steps approach white or black, which is why a pale indigo reads as
        a tint rather than a wash of purple.
        ======================================================================== */
 
-    /* --- Plum, hue 330° — brand base: pages, surfaces, text, secondary ---- */
-    --plum-25:  #fefcfe; /* 99% — light page */
-    --plum-50:  #fbf9fb; /* 98% — label on a light fill */
-    --plum-75:  #f9f5f9; /* 97% — sidebar (light) */
-    --plum-100: #f4f0f4; /* 96% — body text (dark); accent label (dark) */
-    --plum-150: #f0e8ef; /* 94% — muted surface (light) */
-    --plum-200: #f1e3ef; /* 93% — accent surface (light) */
-    --plum-300: #e4dbe3; /* 90% — border and input (light) */
-    --plum-400: #be95ba; /* 72% — lifted, for fills on dark backgrounds */
-    --plum-600: #5f4f5d; /* 45% — line work on light backgrounds */
-    --plum-750: #3d2d3b; /* 32% — accent surface (dark); accent label (light) */
-    --plum-780: #2c232b; /* 27% — muted surface (dark) */
-    --plum-700: #401f3e; /* 30% — THE BRAND HEX */
-    --plum-800: #221521; /* 22% — ink / body text (light) */
-    --plum-850: #1e151d; /* 21% — raised dark surface: card, popover */
-    --plum-900: #191118; /* 19% — sidebar (dark) */
-    --plum-950: #130c12; /* 17% — dark page */
+    /* ====================================================================
+       Two families, five steps each, with the hex you specified in the middle.
+       100 is the lightest step, 500 the darkest.
 
-    /* --- Magenta, hue 351° — every button colour, primary and secondary ---
-       Primary and secondary share this one hue and are told apart by lightness
-       alone, which is what keeps them feeling like one family. (Hue is a poor
-       separator anyway: the palette's original failure was two colours 27° apart
-       at the same lightness, which read as identical.) */
-    --magenta-100: #fce3ed; /* 94% — label on a dark magenta surface */
-    --magenta-200: #e9c5d4; /* 86% — secondary button surface (light) */
-    --magenta-400: #e97ab0; /* 72% — primary fill on dark, takes a dark label */
-    --magenta-500: #c94f8e; /* 61% — THE BRAND HEX (too mid to label at AA) */
-    --magenta-600: #b43f7d; /* 55% — primary fill on light, takes a white label */
-    --magenta-700: #74134b; /* 38% — label on a pale magenta surface */
-    --magenta-800: #4a2e3b; /* 34% — secondary button surface (dark) */
+       Note: --accent-100..500 (the brand ramp) is a different thing from
+       --accent (singular), which is shadcn's hover-surface token further down.
+       ==================================================================== */
 
-    /* --- Citron, hue 110° — the tertiary accent ---------------------------
-       119° from magenta, near its complement, so it reads as a deliberate
-       counterpoint rather than a third competing brand colour. Used only where
-       it should be seen: title dividers, the secondary focus ring, charts.
+    /* --- Indigo, hue ~272° — every surface, and the secondary control ----- */
+    --indigo-100: #5064ab; /* 52% — Slate Indigo: slate sections, secondary fill */
+    --indigo-200: #212047; /* 27% — Space Indigo: alternate sections */
+    --indigo-300: #0c122a; /* 19% — Prussian Blue: THE BASE — app background */
+    --indigo-400: #05081b; /* 14% — recessed surfaces, sidebar */
+    --indigo-500: #02030c; /* 10% — deepest step */
 
-       The brand hex is 91% lightness — brilliant on the dark page (15:1) and
-       invisible on the light one (1.26:1). Light mode therefore takes a much
-       darker step, which reads as olive rather than citron. That is a property
-       of a near-white page, not a choice. */
-    --citron-200: #e7e97a; /* 91% — THE BRAND HEX; divider + ring (dark) */
-    --citron-500: #b4b549; /* 75% — mid step, charts */
-    --citron-600: #92921e; /* 64% — divider + ring (light) */
+    /* --- Accent, hue 116° — the call to action, dividers, focus ----------
+       A light hue, so its label is always the deep indigo rather than white:
+       ink beats white on every step of this ramp (5.21:1 vs 3.55:1 at the
+       darkest). That also makes primary read identically in both themes. */
+    --accent-100: #eaf8a2; /* 95% */
+    --accent-200: #e0f17a; /* 92% — primary hover (dark) */
+    --accent-300: #d4e84f; /* 89% — THE BASE — primary fill (dark), dividers */
+    --accent-400: #b9c945; /* 80% — primary active (dark), hover (light) */
+    --accent-500: #838f20; /* 62% — primary fill (light), dividers (light) */
 
     /* --- Off-palette ------------------------------------------------------
        Destructive is a true red — deliberately outside the brand hues so a
@@ -287,126 +298,137 @@
     /* --- Brand aliases ----------------------------------------------------
        Friendly names for the three hexes a designer would hand you. These are
        what `bg-brand-*` utilities resolve to. */
-    --brand-plum: var(--plum-700);
-    --brand-magenta: var(--magenta-500);
-    --brand-citron: var(--citron-200);
+    --brand-indigo: var(--indigo-300);
+
+    --brand-accent: var(--accent-300);
 
     /* ========================================================================
        SEMANTIC TOKENS (light) — references only.
        ======================================================================== */
-    --background: var(--plum-25);
-    --foreground: var(--plum-800);
+    /* --- Section surfaces --------------------------------------------------
+       Three tiers so consecutive sections read as distinct bands. Light mode
+       uses tints of the same hue; they sit outside the 100–500 ramp because a
+       five-step scale centred on Prussian can't also reach near-white. */
+    --surface-base: #fdfdff;
+    --surface-alt: #E1E1E1;
+    --surface-slate: #e6e9f5;
+
+    --background: var(--surface-base);
+    --foreground: #141726;
     --card: #ffffff;
-    --card-foreground: var(--plum-800);
+    --card-foreground: var(--foreground);
     --popover: #ffffff;
-    --popover-foreground: var(--plum-800);
+    --popover-foreground: var(--foreground);
 
-    /* Magenta is the call to action — the most saturated colour in the palette,
-       so it's what pulls the eye. The brand hex itself is mid-lightness and
-       can't carry a label at AA either way (4.3:1 at best), hence the deeper
-       step: white on it measures 6.26:1. */
-    --primary: var(--magenta-600);
-    --primary-foreground: var(--plum-50);
+    /* Primary keeps a bright accent in light mode rather than a heavily darkened
+       step. Pushing it dark enough to reach 3:1 against white turns it olive and
+       the colour stops being the brand colour, so it sits one step down instead
+       and relies on its label (10.1:1) to identify it. */
+    --primary: var(--accent-400);
+    --primary-foreground: var(--indigo-300);
+    --primary-hover: var(--accent-300);
+    --primary-active: var(--accent-500);
 
-    /* Plum takes the calmer secondary role: a pale plum surface carrying the
-       brand colour as its label, 11.94:1. It sits 0.467 from primary in OKLab,
-       so the two buttons can't be confused — the pairing that started this
-       palette was 0.053 apart and read as the same button. */
-    --secondary: var(--magenta-200);
-    --secondary-foreground: var(--magenta-700);
+    /* Secondary is Slate Indigo, identical in both themes — it reads correctly
+       on light and dark surfaces alike, so it needs no per-theme variant. */
+    /* Slate Indigo one step down for light surfaces. --indigo-100 is tuned to
+       sit on the dark page; against near-white it wants more weight. */
+    --slate-deep: #3e529a;
+    --secondary: var(--slate-deep);
+    --secondary-foreground: #ffffff;
+    --secondary-hover: #475ba3;
+    --secondary-active: #374990;
 
-    --muted: var(--plum-150);
-    /* Secondary text is --foreground at 70%, deliberately translucent so it
-       sits correctly on any surface and over the hero gradient rather than
-       being tuned for one background. Worst case anywhere is 5.75:1. */
-    --muted-foreground: #221521b3;
+    --muted: var(--surface-alt);
+    /* Secondary text is --foreground at 70%. Translucent so it composites
+       correctly on whichever surface a section is using. */
+    --muted-foreground: #141726b3;
 
-    --accent: var(--plum-200);
-    --accent-foreground: var(--plum-750);
+    --accent: var(--surface-slate);
+    --accent-foreground: var(--foreground);
 
-    --destructive: var(--red-500);
-    --border: var(--plum-300);
-    --input: var(--plum-300);
-    /* Focus rings. Deliberately a *different step* from the fill they surround:
-       a ring in the same colour as the button merges with it and reads as a
-       fatter button rather than a ring. Light rings darker than the fill, dark
-       rings lighter — but still saturated, so they read as magenta rather than
-       as a white outline. */
-    /* Primary buttons: the magenta step for this mode at 70% alpha. The brand
-       hex at 70% only reaches 2.6:1 against the page — under the 3:1 a focus
-       indicator needs — so each mode uses its own step. This one is 4.92:1. */
-    --ring: #74134bb3;
-    /* Secondary buttons and menu items take the accent, so a focused secondary
-       is distinguishable from a focused primary while tabbing. */
-    --ring-accent: var(--citron-600);
-    /* Decorative rule under section titles. Mist's real home in the UI: it's
-       the one place a low-chroma cool tone reads as intentional rather than
-       muddy, because it sits alone against the page instead of tinting a
-       surface. Purely decorative, so 3:1 against the page is the bar. */
-    --rule: var(--citron-600);
+    --destructive: #b3261e;
+    --border: #dbdde8;
+    --input: #dbdde8;
 
-    --chart-1: var(--plum-700);
-    --chart-2: var(--magenta-500);
-    --chart-3: var(--chart-mid-light);
-    --chart-4: var(--citron-500);
-    --chart-5: var(--chart-far-light);
+    /* Focus rings. Primary tracks the accent; secondary and chrome use slate so
+       a focused secondary is distinguishable while tabbing. */
+    /* Focus rings avoid the accent in light mode for the same reason — a thin
+       indicator in a near-white hue can't reach 3:1 on a near-white page. */
+    --ring: var(--indigo-300);
+    --ring-accent: var(--slate-deep);
+
+    /* A 3px accent rule is only 1.34:1 on a light page — it would read as
+       nothing. Slate carries the divider here instead. */
+    --rule: var(--slate-deep);
+
+    --chart-1: var(--indigo-100);
+    --chart-2: var(--accent-500);
+    --chart-3: #6981ab;
+    --chart-4: var(--indigo-200);
+    --chart-5: #8db7b9;
 
     --radius: 0.625rem;
 
-    --sidebar: var(--plum-75);
-    --sidebar-foreground: var(--plum-800);
-    --sidebar-primary: var(--magenta-600);
-    --sidebar-primary-foreground: var(--plum-50);
-    --sidebar-accent: var(--plum-200);
-    --sidebar-accent-foreground: var(--plum-750);
-    --sidebar-border: var(--plum-300);
+    --sidebar: var(--surface-alt);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--accent-500);
+    --sidebar-primary-foreground: var(--indigo-300);
+    --sidebar-accent: var(--surface-slate);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: #dbdde8;
     --sidebar-ring: var(--ring);
-
 }
 
 .dark {
-    --background: var(--plum-950);
-    --foreground: var(--plum-100);
-    --card: var(--plum-850);
-    --card-foreground: var(--plum-100);
-    --popover: var(--plum-850);
-    --popover-foreground: var(--plum-100);
+    --surface-base: var(--indigo-300);  /* Prussian */
+    --surface-alt: var(--indigo-200);   /* Space Indigo */
+    --surface-slate: var(--indigo-100); /* Slate Indigo */
 
-    /* Magenta lifted for the dark page; its dark label measures 6.83:1. */
-    --primary: var(--magenta-400);
-    --primary-foreground: var(--plum-850);
+    --background: var(--surface-base);
+    --foreground: #ffffff;
+    --card: var(--indigo-200);
+    --card-foreground: var(--foreground);
+    --popover: var(--indigo-200);
+    --popover-foreground: var(--foreground);
 
-    --secondary: var(--magenta-800);
-    --secondary-foreground: var(--magenta-100);
+    --primary: var(--accent-300);
+    --primary-foreground: var(--indigo-300);
+    --primary-hover: var(--accent-200);
+    --primary-active: var(--accent-400);
 
-    --muted: var(--plum-780);
-    /* --foreground at 70%. Worst case across every dark surface is 6.34:1. */
-    --muted-foreground: #f4f0f4b3;
+    --secondary: var(--indigo-100);
+    --secondary-foreground: #ffffff;
+    --secondary-hover: #6477bd;
+    --secondary-active: #45589b;
 
-    --accent: var(--plum-750);
-    --accent-foreground: var(--plum-100);
+    --muted: var(--indigo-400);
+    --muted-foreground: #ffffffb3; /* white @ 70% */
 
-    --destructive: var(--red-400);
-    /* Borders on dark are white at low alpha rather than a palette step: they
-       need to read against card, popover and page alike. */
+    --accent: var(--indigo-200);
+    --accent-foreground: var(--foreground);
+
+    --destructive: #ff6467;
     --border: #ffffff1f;
     --input: #ffffff26;
-    --ring: #e97ab0b3; /* magenta-400 @ 70% — 4.06:1 against the dark page */
-    --ring-accent: var(--citron-200);
-    --rule: var(--citron-200);
 
-    --chart-1: var(--plum-400);
-    --chart-2: var(--magenta-400);
-    --chart-3: var(--chart-mid-dark);
-    --chart-4: var(--citron-500);
-    --chart-5: var(--chart-far-dark);
+    --ring: var(--accent-300);
+    --ring-accent: var(--indigo-100);
 
-    --sidebar: var(--plum-900);
-    --sidebar-foreground: var(--plum-100);
-    --sidebar-primary: var(--magenta-400);
-    --sidebar-primary-foreground: var(--plum-850);
-    --sidebar-accent: var(--plum-750);
-    --sidebar-accent-foreground: var(--plum-100);
+    --rule: var(--accent-300);
+
+    --chart-1: var(--indigo-100);
+    --chart-2: var(--accent-300);
+    --chart-3: #8499be;
+    --chart-4: var(--accent-500);
+    --chart-5: #9cc7c9;
+
+    --sidebar: var(--indigo-400);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--accent-300);
+    --sidebar-primary-foreground: var(--indigo-300);
+    --sidebar-accent: var(--indigo-200);
+    --sidebar-accent-foreground: var(--foreground);
     --sidebar-border: #ffffff1f;
     --sidebar-ring: var(--ring);
 

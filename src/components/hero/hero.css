@@ -18,28 +18,28 @@
 	/* Wireframe lines, then a scrim of the page background knocked over them.
 	   Drawing at full strength and veiling keeps the lines crisp rather than
 	   thin-and-grey. Light mode can't use white — it would vanish on a
-	   near-white page — so it takes a mid plum.
+	   near-white page — so it takes a mid indigo.
 	   --hero-globe-scrim mirrors --background at 55%; keep them in step. */
-	--hero-globe-line: var(--plum-600);
-	--hero-globe-scrim: #fefcfe8c;
+	--hero-globe-line: var(--indigo-100);
+	--hero-globe-scrim: #fdfdffb3;
 
 	/* Backdrop wash: the brand colours at very low alpha. Even with all three
 	   gradients overlapping, muted text over them measures 5.81:1. Raising
 	   these breaks AA on the hero paragraph. */
-	--hero-glow-1: #401f3e0f; /* plum-700     @ 6%   */
-	--hero-glow-2: #c94f8e09; /* magenta-500  @ 3.5% */
-	--hero-glow-3: #759aab14; /* mist         @ 8%   */
+	--hero-glow-1: #0c122a12; /* indigo-300   @ 7%   */
+	--hero-glow-2: #5064ab14; /* indigo-100   @ 8%   */
+	--hero-glow-3: #2120470f; /* indigo-200   @ 6%   */
 }
 
 .dark {
 	/* White wireframe against the near-black page, veiled by the scrim.
 	   Mirrors --background at 55%. */
 	--hero-globe-line: #ffffff;
-	--hero-globe-scrim: #130c128c;
+	--hero-globe-scrim: #0c122ab3;
 
 	/* Lifted brand hues so they read as a glow rather than muddying the page.
 	   Stacked, muted text over them measures 6.82:1. */
-	--hero-glow-1: #925b8e20; /* plum, lifted    @ 12.5% */
-	--hero-glow-2: #b256831c; /* magenta, lifted @ 11%   */
-	--hero-glow-3: #6087981a; /* mist, lifted    @ 10%   */
+	--hero-glow-1: #2120475c; /* indigo-200 (space indigo) @ 36% */
+	--hero-glow-2: #5064ab4d; /* indigo-100 (slate)        @ 30% */
+	--hero-glow-3: #5064ab33; /* indigo-100 (slate)        @ 20% */
 }

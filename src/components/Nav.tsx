@@ -242,7 +242,7 @@ export default function Nav() {
 					<a
 						href="/"
 						className={cn(
-							'font-heading text-label hover:bg-accent focus-visible:ring-ring-accent focus-visible:ring-offset-background ml-1 rounded-lg px-3 tracking-tight outline-none focus-visible:ring-[3px] focus-visible:ring-offset-[3px]',
+							'font-heading text-label hover:bg-accent focus-visible:ring-secondary/50 dark:focus-visible:ring-secondary/30 ml-1 rounded-lg px-3 tracking-tight outline-none focus-visible:ring-[3px]',
 							'transition-all duration-300 motion-reduce:transition-none',
 							compact ? 'py-1.5' : 'py-2.5'
 						)}
@@ -302,7 +302,7 @@ export default function Nav() {
 									className={cn(
 										// Nav links are controls, not prose — they take the
 										// prominent face like the buttons beside them.
-										'font-heading text-body-sm focus-visible:ring-ring-accent focus-visible:ring-offset-background relative z-10 block rounded-lg px-3 outline-none focus-visible:ring-[3px] focus-visible:ring-offset-[3px]',
+										'font-heading text-body-sm focus-visible:ring-secondary/50 dark:focus-visible:ring-secondary/30 relative z-10 block rounded-lg px-3 outline-none focus-visible:ring-[3px]',
 										// Colour moves quickly (180ms) while the pill glides (520ms), so the
 										// label feels responsive rather than dragged along. Padding
 										// keeps the bar's own 300ms so it stays in step when the nav
@@ -374,7 +374,7 @@ export default function Nav() {
 											<a
 												href={href}
 												className={cn(
-													'font-heading text-body-sm focus-visible:ring-ring-accent focus-visible:ring-offset-background rounded-lg outline-none focus-visible:ring-[3px] focus-visible:ring-offset-[3px] flex items-center gap-3 px-3 py-2 transition-colors',
+													'font-heading text-body-sm focus-visible:ring-secondary/50 dark:focus-visible:ring-secondary/30 rounded-lg outline-none focus-visible:ring-[3px] flex items-center gap-3 px-3 py-2 transition-colors',
 													isActive(href)
 														? 'text-label bg-primary text-primary-foreground hover:bg-primary/80'
 														: 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'

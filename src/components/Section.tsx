@@ -25,11 +25,25 @@ export interface SectionProps extends React.ComponentProps<'section'> {
 	align?: 'center' | 'start';
 	/** Full-bleed decorative layer, rendered outside the max-width wrapper. */
 	background?: React.ReactNode;
+	/**
+	 * Which of the three section surfaces to paint. `base` matches the page, so
+	 * consecutive sections can alternate to read as distinct bands. The colour
+	 * spans the full bleed, not just the content column.
+	 */
+	surface?: 'base' | 'alt' | 'slate';
 }
+
+// The utilities carry token overrides as well as a background — see global.css.
+const surfaces = {
+	base: 'surface-base',
+	alt: 'surface-alt',
+	slate: 'surface-slate',
+} as const;
 
 export function Section({
 	align = 'center',
 	background,
+	surface = 'base',
 	className,
 	children,
 	...props
@@ -44,6 +58,7 @@ export function Section({
 				// top, so this doubles as scroll offset for anchor links.
 				'px-6 pt-28 pb-16',
 				align === 'center' ? 'justify-center' : 'justify-start',
+				surfaces[surface],
 				className
 			)}
 			{...props}

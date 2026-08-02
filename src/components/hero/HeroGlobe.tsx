@@ -24,8 +24,11 @@ export function HeroGlobe() {
 				data-hero-globe
 				className="absolute inset-0 size-full"
 				style={{
+					// Wider and later-fading than before: at this size a tight mask
+					// clips the diamond's points off, which reads as a crop rather
+					// than a form bleeding out of frame.
 					maskImage:
-						'radial-gradient(115% 115% at 68% 50%, #000 45%, transparent 100%)',
+						'radial-gradient(135% 130% at 62% 50%, #000 62%, transparent 100%)',
 				}}
 			/>
 

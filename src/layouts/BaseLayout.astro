@@ -51,11 +51,27 @@ const {
 					document.documentElement.classList.toggle('dark', theme === 'dark');
 				};
 				apply();
-				// The router swaps <html>, so the class has to be reapplied after
-				// each navigation. Guarded so repeat head execution can't stack
-				// duplicate listeners.
 				if (!window.__themeListenerBound) {
 					window.__themeListenerBound = true;
+
+					// The server always renders class="dark", and the router copies
+					// root attributes from the incoming document — so a light-mode
+					// navigation lands on a dark <html> until something corrects it.
+					// Fixing that in astro:after-swap is too late: the page paints
+					// dark for a frame first, which showed up as every token flipping
+					// to its dark value mid-transition.
+					//
+					// astro:before-swap hands over the new document *before* it is
+					// swapped in, so the class can be set while it is still off-screen
+					// and the flash never happens.
+					document.addEventListener('astro:before-swap', (event) => {
+						const theme = localStorage.getItem('theme') ?? 'dark';
+						event.newDocument.documentElement.classList.toggle(
+							'dark',
+							theme === 'dark'
+						);
+					});
+					// Kept as a safety net for any path that bypasses before-swap.
 					document.addEventListener('astro:after-swap', apply);
 				}
 			})();

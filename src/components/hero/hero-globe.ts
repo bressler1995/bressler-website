@@ -19,12 +19,16 @@ const TILT = 16;
 /** Latitude rings drawn between the poles (exclusive). */
 const LAT_STEP = 15;
 
-/** Meridians around the sphere. */
-const LON_STEP = 20;
+/** Meridians around the sphere. Denser than a plain sphere would need, so the
+    spiked silhouette is described by more than a handful of lines. */
+const LON_STEP = 15;
 
-/** Points sampled per ring / per meridian. More = smoother curves. */
-const RING_SEGMENTS = 72;
-const MERIDIAN_SEGMENTS = 36;
+/** Points sampled per ring / per meridian. More = smoother curves.
+    Sharpened peaks are narrow, so a coarse step walks straight over them and
+    the spikes come out as angular kinks rather than points — these are double
+    what a plain sphere needs. */
+const RING_SEGMENTS = 160;
+const MERIDIAN_SEGMENTS = 80;
 
 /**
  * Below this the globe centres itself instead of sitting off to the right.
@@ -35,6 +39,28 @@ const WIDE_BREAKPOINT = 768;
 
 /** Camera distance in sphere radii. Larger = flatter, more orthographic. */
 const CAMERA_DISTANCE = 2.6;
+
+/* --- Form -----------------------------------------------------------------
+   A superquadric, not a sphere. The exponent controls the whole silhouette:
+
+     2.0   sphere        outline is a circle at every angle
+     1.0   octahedron    a diamond — six points, flat faces
+     <1    spiked        faces go concave, so the points sharpen
+
+   Below 1 pulls the faces inward, sharpening the six axis points. Measured on
+   the outline, a sphere's min/max radius ratio is 1.000; at 0.85 it's 0.63, and
+   unlike a sphere it changes as the form turns.
+
+   Set this to 1.0 for a plain octahedron with flat faces, or below 0.7 to make
+   the points genuinely spiky. */
+
+/** Superquadric exponent. Lower = sharper points, more concave faces. */
+const DIAMOND_EXPONENT = 0.9;
+
+/** Equal axes — the form is symmetrical; the geometry supplies the character. */
+const AXIS_X = 1.0;
+const AXIS_Y = 1.0;
+const AXIS_Z = 1.0;
 
 /** Depth is quantised into this many alpha levels so each is one stroke call. */
 const DEPTH_BUCKETS = 8;
@@ -54,20 +80,39 @@ let teardown: (() => void) | null = null;
 
 const noop = () => {};
 
-/** Unit-sphere geometry, built once — only the rotation changes per frame. */
+/**
+ * Radius at a given latitude/longitude, in radians. A pure superquadric — the
+ * form comes entirely from the exponent, with no additional displacement, so
+ * the facets stay clean and the edges read as straight lines.
+ */
+function radiusAt(lat: number, lon: number) {
+	const cosLat = Math.cos(lat);
+	const x = Math.abs(cosLat * Math.cos(lon));
+	const y = Math.abs(Math.sin(lat));
+	const z = Math.abs(cosLat * Math.sin(lon));
+
+	const n = DIAMOND_EXPONENT;
+	return Math.pow(Math.pow(x, n) + Math.pow(y, n) + Math.pow(z, n), -1 / n);
+}
+
+/** A surface point, displaced and scaled onto the unequal axes. */
+function pointAt(lat: number, lon: number, out: Float32Array, i: number) {
+	const r = radiusAt(lat, lon);
+	const cosLat = Math.cos(lat);
+	out[i] = r * cosLat * Math.cos(lon) * AXIS_X;
+	out[i + 1] = r * Math.sin(lat) * AXIS_Y;
+	out[i + 2] = r * cosLat * Math.sin(lon) * AXIS_Z;
+}
+
+/** Geometry, built once — only the rotation changes per frame. */
 function buildGeometry(): Line[] {
 	const lines: Line[] = [];
 
 	// Latitude rings.
 	for (let lat = -90 + LAT_STEP; lat < 90; lat += LAT_STEP) {
 		const points = new Float32Array((RING_SEGMENTS + 1) * 3);
-		const cosLat = Math.cos(lat * DEG);
-		const sinLat = Math.sin(lat * DEG);
 		for (let i = 0; i <= RING_SEGMENTS; i++) {
-			const lon = (i / RING_SEGMENTS) * 360 * DEG;
-			points[i * 3] = cosLat * Math.cos(lon);
-			points[i * 3 + 1] = sinLat;
-			points[i * 3 + 2] = cosLat * Math.sin(lon);
+			pointAt(lat * DEG, (i / RING_SEGMENTS) * 360 * DEG, points, i * 3);
 		}
 		lines.push(points);
 	}
@@ -75,14 +120,8 @@ function buildGeometry(): Line[] {
 	// Meridians, pole to pole.
 	for (let lon = 0; lon < 360; lon += LON_STEP) {
 		const points = new Float32Array((MERIDIAN_SEGMENTS + 1) * 3);
-		const cosLon = Math.cos(lon * DEG);
-		const sinLon = Math.sin(lon * DEG);
 		for (let i = 0; i <= MERIDIAN_SEGMENTS; i++) {
-			const lat = (-90 + (i / MERIDIAN_SEGMENTS) * 180) * DEG;
-			const cosLat = Math.cos(lat);
-			points[i * 3] = cosLat * cosLon;
-			points[i * 3 + 1] = Math.sin(lat);
-			points[i * 3 + 2] = cosLat * sinLon;
+			pointAt((-90 + (i / MERIDIAN_SEGMENTS) * 180) * DEG, lon * DEG, points, i * 3);
 		}
 		lines.push(points);
 	}
@@ -139,11 +178,16 @@ export function initHeroGlobe(): () => void {
 		ctx.clearRect(0, 0, width, height);
 		if (width === 0 || height === 0) return;
 
-		// Sit the globe right of centre and let it bleed off the edges, tucking
-		// toward the middle on narrow screens where there's no room beside it.
+		// Sized to read as decoration rather than an object in the scene: the
+		// form is larger than the section and bleeds off the top, bottom and
+		// right, so what's visible is a fragment of something bigger. Scaled off
+		// the larger dimension on wide screens so it keeps spanning as the
+		// viewport widens, instead of being pinned to a short height.
 		const wide = width >= WIDE_BREAKPOINT;
-		const radius = Math.min(width, height) * (wide ? 0.62 : 0.55);
-		const cx = width * (wide ? 0.68 : 0.5);
+		const radius = wide
+			? Math.max(width * 0.42, height * 0.78)
+			: Math.min(width, height) * 0.8;
+		const cx = width * (wide ? 0.62 : 0.5);
 		const cy = height * 0.5;
 
 		const cosA = Math.cos(angle);
