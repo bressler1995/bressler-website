@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { initHeroGlobe } from '@/scripts/hero-globe';
+import { initHeroGlobe } from './hero-globe';
 
 /**
  * Decorative rotating wireframe globe. Purely a background layer — it carries

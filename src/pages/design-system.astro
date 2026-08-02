@@ -4,15 +4,105 @@ import Section from '@/components/Section';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Star } from 'lucide-react';
 
-// Swatches render from the tokens (bg-brand-*); the hex is only a label for
-// reference. If a token is ever retuned, the swatch is authoritative and this
-// string is the thing that went stale.
-const brand = [
-	{ hex: '#401F3E', cls: 'bg-brand-plum', role: 'Primary' },
-	{ hex: '#3F2E56', cls: 'bg-brand-iris', role: 'Secondary' },
-	{ hex: '#759AAB', cls: 'bg-brand-mist', role: 'Low emphasis' },
+/**
+ * Colour families. Swatches render from the palette tokens themselves, so if a
+ * token is retuned the swatch follows and only the printed hex goes stale.
+ * `use` is what that specific step drives — every step listed here is
+ * referenced by at least one semantic token in global.css.
+ */
+const families = [
+	{
+		name: 'Magenta',
+		hue: '351°',
+		brandToken: '--magenta-500',
+		brandHex: '#C94F8E',
+		role: 'Primary — every interactive fill',
+		note: 'Primary and secondary share this hue and are told apart by lightness alone. The brand hex itself is mid-lightness and cannot carry a label at AA either way (4.3:1 at best), which is why buttons use the 55% and 72% steps instead.',
+		steps: [
+			{ token: '--magenta-100', hex: '#fce3ed', l: '94%', use: 'Label on a dark magenta surface' },
+			{ token: '--magenta-200', hex: '#e9c5d4', l: '86%', use: 'Secondary button surface (light)' },
+			{ token: '--magenta-400', hex: '#e97ab0', l: '72%', use: 'Primary fill (dark)' },
+			{ token: '--magenta-500', hex: '#c94f8e', l: '61%', use: 'The brand hex · chart series 2', brand: true },
+			{ token: '--magenta-600', hex: '#b43f7d', l: '55%', use: 'Primary fill (light)' },
+			{ token: '--magenta-700', hex: '#74134b', l: '38%', use: 'Label on a pale magenta surface' },
+			{ token: '--magenta-800', hex: '#4a2e3b', l: '34%', use: 'Secondary button surface (dark)' },
+		],
+		appliesTo: [
+			'Primary button — fill and label',
+			'Secondary button — surface and label',
+			'Focus ring on primary buttons (same hue at 70% alpha)',
+			'Active nav link',
+			'Hero glow 2 · chart series 2',
+		],
+	},
+	{
+		name: 'Plum',
+		hue: '330°',
+		brandToken: '--plum-700',
+		brandHex: '#401F3E',
+		role: 'Base — pages, surfaces, text, line work',
+		note: 'Plum stopped being a button colour when magenta took over the interactive roles. It now carries the whole substrate, which is why it has by far the most steps: every background, every text colour, and every low-emphasis surface is a plum at some lightness.',
+		steps: [
+			{ token: '--plum-25', hex: '#fefcfe', l: '99%', use: 'Page background (light)' },
+			{ token: '--plum-50', hex: '#fbf9fb', l: '98%', use: 'Label on a light fill' },
+			{ token: '--plum-75', hex: '#f9f5f9', l: '97%', use: 'Sidebar (light)' },
+			{ token: '--plum-100', hex: '#f4f0f4', l: '96%', use: 'Body text (dark) · accent label (dark)' },
+			{ token: '--plum-150', hex: '#f0e8ef', l: '94%', use: 'Muted surface (light)' },
+			{ token: '--plum-200', hex: '#f1e3ef', l: '93%', use: 'Accent / hover surface (light)' },
+			{ token: '--plum-300', hex: '#e4dbe3', l: '90%', use: 'Borders and inputs (light)' },
+			{ token: '--plum-400', hex: '#be95ba', l: '72%', use: 'Chart series 1 (dark)' },
+			{ token: '--plum-600', hex: '#5f4f5d', l: '45%', use: 'Hero globe wireframe (light)' },
+			{ token: '--plum-700', hex: '#401f3e', l: '30%', use: 'The brand hex · chart series 1', brand: true },
+			{ token: '--plum-750', hex: '#3d2d3b', l: '32%', use: 'Accent surface (dark) · accent label (light)' },
+			{ token: '--plum-780', hex: '#2c232b', l: '27%', use: 'Muted surface (dark)' },
+			{ token: '--plum-800', hex: '#221521', l: '22%', use: 'Body text (light)' },
+			{ token: '--plum-850', hex: '#1e151d', l: '21%', use: 'Card and popover (dark) · label on primary (dark)' },
+			{ token: '--plum-900', hex: '#191118', l: '19%', use: 'Sidebar (dark)' },
+			{ token: '--plum-950', hex: '#130c12', l: '17%', use: 'Page background (dark)' },
+		],
+		appliesTo: [
+			'Page, card and popover backgrounds',
+			'All body text and headings',
+			'Muted and hover surfaces',
+			'Borders, inputs and dividers',
+			'Hero globe wireframe (light) · hero glow 1',
+			'Chart series 1',
+		],
+	},
+	{
+		name: 'Citron',
+		hue: '110°',
+		brandToken: '--citron-200',
+		brandHex: '#E7E97A',
+		role: 'Accent — the counterpoint, used sparingly',
+		note: 'Sits 119° from magenta, near its complement, so it reads as a deliberate counterpoint rather than a third competing brand colour. Only used at full strength: as faint tints beside warm purples a cool accent reads as dirt, which is what the low-emphasis surfaces moved to plum to avoid. The brand hex is 91% lightness — brilliant on the dark page (15:1) and invisible on the light one (1.26:1), so light mode takes a much darker step that reads as olive.',
+		steps: [
+			{ token: '--citron-200', hex: '#e7e97a', l: '91%', use: 'The brand hex · divider + focus ring (dark)', brand: true },
+			{ token: '--citron-500', hex: '#b4b549', l: '75%', use: 'Chart series 4' },
+			{ token: '--citron-600', hex: '#92921e', l: '64%', use: 'Divider + focus ring (light)' },
+		],
+		appliesTo: [
+			'Title dividers under hero and section headings',
+			'Focus ring on secondary buttons',
+			'Focus ring on nav links and icon buttons',
+			'Chart series 4',
+		],
+	},
+];
+
+/** Semantic tokens: what each one actually drives in the UI. */
+const semanticMap = [
+	{ cls: 'bg-background', token: '--background', drives: 'Page background' },
+	{ cls: 'bg-card', token: '--card', drives: 'Cards and popovers' },
+	{ cls: 'bg-primary', token: '--primary', drives: 'Primary button fill, active nav link' },
+	{ cls: 'bg-secondary', token: '--secondary', drives: 'Secondary button surface, badges' },
+	{ cls: 'bg-muted', token: '--muted', drives: 'Muted panels; ghost button hover' },
+	{ cls: 'bg-accent', token: '--accent', drives: 'Hover surfaces' },
+	{ cls: 'bg-border', token: '--border', drives: 'Borders, inputs, row dividers' },
+	{ cls: 'bg-destructive', token: '--destructive', drives: 'Destructive actions' },
 ];
 
 const architecture = [
@@ -60,388 +150,524 @@ const containers = [
 	{ cls: 'max-w-content', value: '1280px', use: 'Content-led pages: forms, article shells.' },
 	{ cls: 'max-w-prose', value: '65ch', use: 'Long-form text. Blog bodies, sustained paragraphs.' },
 ];
-
-const semantic = [
-	'bg-background',
-	'bg-card',
-	'bg-primary',
-	'bg-secondary',
-	'bg-muted',
-	'bg-accent',
-	'bg-border',
-	'bg-destructive',
-];
 ---
 
 {/* Reference page: one long document, not a sequence of scenes. Snapping
     between two distant points makes it hard to read. */}
 <BaseLayout title="Design system — Brian Ressler" snap={false}>
 	<Section align="start">
-		<h1 class="text-h1">Design system</h1>
+		<h1 class="text-h1 title-rule">Design system</h1>
 		<p class="text-muted-foreground mt-2">
 			Reference for building pages. Toggle the theme in the nav to check both
 			modes.
 		</p>
 
-	<Card className="mt-8">
-		<CardHeader>
-			<CardTitle>Architecture</CardTitle>
-		</CardHeader>
-		<CardContent className="space-y-6">
-			<div class="overflow-x-auto">
-				<table class="w-full text-left">
-					<thead>
-						<tr class="text-muted-foreground text-caption">
-							<th class="py-1 pr-4">Layer</th>
-							<th class="py-1 pr-4">Lives in</th>
-							<th class="py-1">Owns</th>
-						</tr>
-					</thead>
-					<tbody>
-						{
-							architecture.map((a) => (
-								<tr class="border-border/60 border-t align-top">
-									<td class="py-1.5 pr-4 font-mono text-caption">{a.tech}</td>
-									<td class="text-muted-foreground py-1.5 pr-4 font-mono text-caption">
-										{a.where}
-									</td>
-									<td class="text-muted-foreground py-1.5 text-caption">{a.owns}</td>
-								</tr>
-							))
-						}
-					</tbody>
-				</table>
-			</div>
-
-			<div class="border-t pt-4">
-				<p class="text-label">Hydration</p>
-				<p class="text-muted-foreground text-caption mt-1">
-					Components are static by default — no <code>client:*</code> means they
-					render to HTML and ship zero JS. <code>Skills</code> is a plain React
-					component and costs nothing at runtime.
-				</p>
-				<p class="text-muted-foreground text-caption mt-2">
-					The rule that shapes component boundaries:
-					<strong class="text-foreground">
-						a client directive applies only where Astro mounts React, and nested
-						components can't opt in on their own.
-					</strong>
-					<code>HeroGlobe</code> needs an effect to drive its canvas, so the
-					directive goes on its outermost Astro-mounted ancestor:
-				</p>
-				<pre
-					class="border-border/60 text-caption mt-3 overflow-x-auto rounded-lg border px-3 py-2 font-mono"><code>&lt;Hero client:load /&gt;   {/* globe animates */}
-&lt;Skills /&gt;              {/* static, 0 KB */}</code></pre>
-			</div>
-
-			<div class="border-t pt-4">
-				<p class="text-label">Composition</p>
-				<p class="text-muted-foreground text-caption mt-1">
-					Children passed from a <code>.astro</code> page into a hydrated island
-					are rendered as static HTML and can't become interactive. When a whole
-					subtree needs interactivity, compose it React-in-React and mount it
-					once. That's why <code>Hero</code> imports <code>Section</code> directly
-					rather than being wrapped by the page.
-				</p>
-				<p class="text-muted-foreground text-caption mt-2">
-					For the same reason <code>Section</code> takes a
-					<code>background</code> <em>prop</em> rather than a named slot — Astro
-					can't pass React elements across the boundary, but React callers can.
-				</p>
-			</div>
-
-			<div class="border-t pt-4">
-				<p class="text-label">Gotchas</p>
-				<ul class="text-muted-foreground text-caption mt-1 list-disc space-y-1 pl-4">
-					<li>
-						React components take <code>className</code>, not <code>class</code>.
-						Astro passes props through verbatim, so <code>class</code> silently
-						does nothing — it builds fine and just drops the styles.
-					</li>
-					<li>
-						<code>&lt;Button asChild&gt;</code> does not work from
-						<code>.astro</code>: Radix clones a React element child, and Astro
-						hands slot content over as opaque HTML. Use
-						<code>buttonVariants(&#123;…&#125;)</code> on a plain
-						<code>&lt;a&gt;</code> instead.
-					</li>
-					<li>
-						Custom type-scale classes go through <code>cn()</code>, which is
-						extended in <code>lib/utils.ts</code> so tailwind-merge doesn't
-						mistake <code>text-body-sm</code> for a colour and strip it.
-					</li>
-				</ul>
-			</div>
-		</CardContent>
-	</Card>
-
-	<Card className="mt-6">
-		<CardHeader>
-			<CardTitle>Typography</CardTitle>
-		</CardHeader>
-		<CardContent className="space-y-6">
-			<p class="text-muted-foreground text-body-sm">
-				Use the semantic step, not a raw Tailwind size — <code>text-h2</code>,
-				never <code>text-3xl</code>. Each step carries its own size,
-				line-height, letter-spacing <em>and weight</em>, so one utility fully
-				describes the style.
-				<strong class="text-foreground">Nunito</strong> is for headings and
-				controls (buttons, nav links);
-				<strong class="text-foreground">Open Sans</strong> is for everything
-				else. Heading elements get their step automatically, so plain markdown
-				is styled without any classes.
-			</p>
-
-			<p class="text-muted-foreground text-body-sm">
-				<strong class="text-foreground">Don't set weight by hand on a scale
-				step.</strong> If you reach for <code>font-medium</code>, the step is
-				probably wrong — <code>text-label</code> exists precisely because
-				<code>text-body-sm font-medium</code> was being repeated. Inline
-				<code>&lt;strong&gt;</code> is pinned to 600 in the base layer, so
-				emphasis never needs a class either. The only weight utility left in
-				the app is <code>tracking-tight</code> on the wordmark, which is a
-				deliberate one-off.
-			</p>
-
-			<div class="flex flex-col gap-5 border-t pt-4">
-				{
-					typeScale.map((t) => (
-						<div class="flex flex-col gap-1">
-							<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-								<code class="text-muted-foreground shrink-0 font-mono text-caption">
-									{t.cls}
-								</code>
-								<span class="text-muted-foreground shrink-0 font-mono text-caption">
-									{t.face}
-								</span>
-								<span class="text-muted-foreground shrink-0 font-mono text-caption">
-									{t.w}
-								</span>
+		{/* ---------------------------------------------------------------- */}
+		{/* Colour: one card per family, each showing its ramp and its jobs.  */}
+		{/* ---------------------------------------------------------------- */}
+		{
+			families.map((f) => (
+				<Card className="mt-8">
+					<CardHeader>
+						<CardTitle>Colour — {f.name}</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-6">
+						<div class="flex flex-wrap items-center gap-4">
+							<div
+								class="border-border/60 size-16 shrink-0 rounded-lg border"
+								style={`background-color: var(${f.brandToken})`}
+							/>
+							<div>
+								<p class="text-label">{f.role}</p>
+								<p class="text-muted-foreground font-mono text-caption">
+									{f.brandHex} · hue {f.hue} · {f.steps.length} steps
+								</p>
 							</div>
-							<p class={`${t.cls} ${t.face === 'Nunito' ? 'font-heading' : ''}`}>
-								The quick brown fox
-							</p>
-							<p class="text-muted-foreground text-caption">{t.use}</p>
 						</div>
-					))
-				}
-			</div>
-		</CardContent>
-	</Card>
 
-	<Card className="mt-6">
-		<CardHeader>
-			<CardTitle>Layout</CardTitle>
-		</CardHeader>
-		<CardContent className="space-y-6">
-			<div>
-				<p class="text-label">Breakpoints</p>
-				<p class="text-muted-foreground text-caption mt-1">
-					Tailwind defaults, plus <code>3xl</code> aligned to the page shell.
-					Mobile-first — style the small case, then add prefixes upward.
+						<p class="text-muted-foreground text-body-sm">{f.note}</p>
+
+						<div class="border-t pt-4">
+							<p class="text-label">Applied to</p>
+							<ul class="text-muted-foreground text-caption mt-2 list-disc space-y-1 pl-4">
+								{f.appliesTo.map((a) => (
+									<li>{a}</li>
+								))}
+							</ul>
+						</div>
+
+						<div class="border-t pt-4">
+							<p class="text-label">Steps</p>
+							<p class="text-muted-foreground text-caption mt-1">
+								Every step below is referenced by a semantic token — there are no
+								spare colours in the palette.
+							</p>
+							<div class="mt-3 overflow-x-auto">
+								<table class="w-full text-left">
+									<thead>
+										<tr class="text-muted-foreground text-caption">
+											<th class="py-1 pr-3" />
+											<th class="py-1 pr-4">Token</th>
+											<th class="py-1 pr-4">Hex</th>
+											<th class="py-1 pr-4">L</th>
+											<th class="py-1">Drives</th>
+										</tr>
+									</thead>
+									<tbody>
+										{f.steps.map((s) => (
+											<tr class="border-border/60 border-t align-middle">
+												<td class="py-1.5 pr-3">
+													<span
+														class="border-border/60 block size-6 rounded border"
+														style={`background-color: var(${s.token})`}
+													/>
+												</td>
+												<td class="py-1.5 pr-4 font-mono text-caption">
+													{s.token.replace('--', '')}
+													{s.brand && (
+														<span class="text-muted-foreground"> ★</span>
+													)}
+												</td>
+												<td class="text-muted-foreground py-1.5 pr-4 font-mono text-caption">
+													{s.hex}
+												</td>
+												<td class="text-muted-foreground py-1.5 pr-4 font-mono text-caption">
+													{s.l}
+												</td>
+												<td class="text-muted-foreground py-1.5 text-caption">
+													{s.use}
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+							<p class="text-muted-foreground text-caption mt-2">
+								★ marks the brand hex — the one a designer would hand you. The
+								other steps exist because a single lightness cannot serve both
+								themes.
+							</p>
+						</div>
+					</CardContent>
+				</Card>
+			))
+		}
+
+		<Card className="mt-6">
+			<CardHeader>
+				<CardTitle>Semantic tokens</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				<p class="text-muted-foreground text-body-sm">
+					Components never reference a palette step directly — they use these.
+					That indirection is what lets a single palette serve both themes:
+					<code>--primary</code> is a different magenta in each, but the button
+					only knows <code>bg-primary</code>.
 				</p>
-				<div class="mt-3 overflow-x-auto">
+				<div class="overflow-x-auto border-t pt-4">
 					<table class="w-full text-left">
 						<thead>
 							<tr class="text-muted-foreground text-caption">
-								<th class="py-1 pr-4">Prefix</th>
-								<th class="py-1 pr-4">Min width</th>
-								<th class="py-1">Use</th>
+								<th class="py-1 pr-3" />
+								<th class="py-1 pr-4">Utility</th>
+								<th class="py-1">Drives</th>
 							</tr>
 						</thead>
 						<tbody>
 							{
-								breakpoints.map((b) => (
-									<tr class="border-border/60 border-t">
-										<td class="py-1.5 pr-4 font-mono text-caption">{b.name}</td>
-										<td class="text-muted-foreground py-1.5 pr-4 font-mono text-caption">
-											{b.value}
+								semanticMap.map((s) => (
+									<tr class="border-border/60 border-t align-middle">
+										<td class="py-1.5 pr-3">
+											<span class={`${s.cls} border-border/60 block size-6 rounded border`} />
 										</td>
-										<td class="text-muted-foreground py-1.5 text-caption">{b.use}</td>
+										<td class="py-1.5 pr-4 font-mono text-caption">{s.cls}</td>
+										<td class="text-muted-foreground py-1.5 text-caption">
+											{s.drives}
+										</td>
 									</tr>
 								))
 							}
 						</tbody>
 					</table>
 				</div>
-			</div>
-
-			<div class="border-t pt-4">
-				<p class="text-label">Container widths</p>
-				<p class="text-muted-foreground text-caption mt-1">
-					Pick by content type. <code>max-w-page</code> is a shell width, not a
-					reading width — prose inside a full-width section still needs
-					<code>max-w-prose</code>.
+				<p class="text-muted-foreground text-caption">
+					<code>--muted-foreground</code> is the exception worth knowing:
+					it's <code>--foreground</code> at 70% alpha rather than its own colour,
+					so it composites correctly on any surface instead of being tuned for
+					the page background.
 				</p>
-				<div class="mt-3 space-y-3">
-					{
-						containers.map((c) => (
-							<div>
-								<div class="flex flex-wrap items-baseline gap-x-3">
-									<code class="font-mono text-caption">{c.cls}</code>
+			</CardContent>
+		</Card>
+
+		{/* ---------------------------------------------------------------- */}
+		{/* Controls: the common interactive components.                     */}
+		{/* ---------------------------------------------------------------- */}
+		<Card className="mt-6">
+			<CardHeader>
+				<CardTitle>Controls</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<div>
+					<p class="text-label">Button variants</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Primary and secondary are the standard pair for calls to action.
+						Ghost is for chrome — nav icons, toolbar actions.
+					</p>
+					<div class="mt-3 flex flex-wrap items-center gap-3">
+						<Button>Primary</Button>
+						<Button variant="secondary">Secondary</Button>
+						<Button variant="outline">Outline</Button>
+						<Button variant="ghost">Ghost</Button>
+						<Button variant="destructive">Destructive</Button>
+						<Button variant="link">Link</Button>
+					</div>
+				</div>
+
+				<div class="border-t pt-4">
+					<p class="text-label">Button sizes</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						<strong class="text-foreground">default</strong> (h-10) and
+						<strong class="text-foreground">lg</strong> (h-12) are the standard
+						sizes. <code>xs</code> and <code>sm</code> are compact variants for
+						dense UI like the nav bar — don't use them as page-level actions.
+					</p>
+					<div class="mt-3 flex flex-wrap items-end gap-3">
+						{
+							(['xs', 'sm', 'default', 'lg'] as const).map((size) => (
+								<div class="flex flex-col items-center gap-1.5">
+									<Button size={size}>{size}</Button>
 									<span class="text-muted-foreground font-mono text-caption">
-										{c.value}
+										{size}
 									</span>
 								</div>
-								<div class={`${c.cls} bg-secondary mt-1 h-2 rounded-sm`} />
-								<p class="text-muted-foreground text-caption mt-1">{c.use}</p>
-							</div>
-						))
-					}
-				</div>
-			</div>
-
-			<div class="border-t pt-4">
-				<p class="text-label">Viewport height</p>
-				<p class="text-muted-foreground text-caption mt-1">
-					Sections are <code>min-h-dvh</code>, so vertical space constrains the
-					layout as much as width does. The awkward viewport isn't a narrow
-					phone — it's a <strong class="text-foreground">short, wide</strong>
-					one: a laptop at 1440×720, a landscape phone, or any browser at 150%
-					zoom. That's where a viewport-tall section stops fitting.
-				</p>
-				<div class="mt-3 space-y-2">
-					<div class="flex flex-wrap items-baseline gap-x-3">
-						<code class="font-mono text-caption">short:</code>
-						<span class="text-muted-foreground font-mono text-caption">
-							height ≤ 600px
-						</span>
+							))
+						}
 					</div>
-					<p class="text-muted-foreground text-caption">
-						Use it to trim vertical rhythm where headroom is scarce — e.g.
-						<code>short:pt-20</code> to pull a section up under the nav. Scroll
-						snapping already disables itself below this height, since mandatory
-						snapping fights the user when a section can't fit.
-					</p>
-					<p
-						class="border-border/60 text-caption rounded-lg border border-dashed px-3 py-2"
-					>
-						<span class="short:hidden">
-							Your viewport is <strong>taller</strong> than 600px —
-							the <code>short:</code> variant is inactive.
-						</span>
-						<span class="hidden short:inline">
-							Your viewport is <strong>600px or shorter</strong> —
-							the <code>short:</code> variant is active right now.
-						</span>
-					</p>
+					<div class="mt-3 flex flex-wrap items-end gap-3">
+						{
+							(['icon-xs', 'icon-sm', 'icon', 'icon-lg'] as const).map((size) => (
+								<div class="flex flex-col items-center gap-1.5">
+									<Button size={size} variant="secondary" aria-label={size}>
+										<Star />
+									</Button>
+									<span class="text-muted-foreground font-mono text-caption">
+										{size}
+									</span>
+								</div>
+							))
+						}
+					</div>
 				</div>
-			</div>
 
-			<div class="border-t pt-4">
-				<p class="text-label">Scroll behaviour</p>
-				<p class="text-muted-foreground text-caption mt-1">
-					Snap scrolling is on by default — it's the house style, and full-height
-					sections assume it. Pages that are really one long document rather than
-					a sequence of scenes can opt out:
-				</p>
-				<pre
-					class="border-border/60 text-caption mt-3 overflow-x-auto rounded-lg border px-3 py-2 font-mono"><code>&lt;BaseLayout title="…" snap=&#123;false&#125;&gt;</code></pre>
-				<p class="text-muted-foreground text-caption mt-2">
-					That drops both the CSS snapping and the JS scroll controller, so an
-					opted-out page binds no scroll listeners at all. This page uses it —
-					which is why scrolling here feels normal.
-					<strong class="text-foreground">Treat it as a stopgap:</strong>
-					as pages get purpose-built full-height layouts, they should turn it
-					back on.
-				</p>
-			</div>
-		</CardContent>
-	</Card>
+				<div class="border-t pt-4">
+					<p class="text-label">Focus states</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Click or tab a button below to see it. A 3px opaque ring with a 3px
+						page-coloured gap — box-shadow, no blur. The ring is deliberately a
+						different step from the fill it surrounds: same-colour rings merge
+						with the button and read as a fatter button.
+					</p>
+					<ul class="text-muted-foreground text-caption mt-2 list-disc space-y-1 pl-4">
+						<li>
+							<strong class="text-foreground">Primary</strong> — magenta at 70%
+							alpha. The brand hex at 70% only reaches 2.6:1 against the page, so
+							each mode uses its own step.
+						</li>
+						<li>
+							<strong class="text-foreground">Secondary, ghost, nav</strong> —
+							the citron accent, so a focused secondary is distinguishable from a
+							focused primary while tabbing.
+						</li>
+					</ul>
+					<div class="mt-3 flex flex-wrap items-center gap-4">
+						<Button>Focus me</Button>
+						<Button variant="secondary">Focus me</Button>
+						<Button variant="ghost">Focus me</Button>
+					</div>
+				</div>
 
-	<Card className="mt-6">
-		<CardHeader>
-			<CardTitle>Brand palette</CardTitle>
-		</CardHeader>
-		<CardContent className="space-y-6">
-			<div class="grid gap-4 sm:grid-cols-3">
-				{
-					brand.map((c) => (
+				<div class="border-t pt-4">
+					<p class="text-label">Badges</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Status and metadata. Not interactive — use a button if it clicks.
+					</p>
+					<div class="mt-3 flex flex-wrap gap-2">
+						<Badge>Default</Badge>
+						<Badge variant="secondary">Secondary</Badge>
+						<Badge variant="outline">Outline</Badge>
+						<Badge variant="destructive">Destructive</Badge>
+					</div>
+				</div>
+
+				<div class="border-t pt-4">
+					<p class="text-label">Inputs</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Border and focus ring come from the same tokens as buttons.
+					</p>
+					<div class="mt-3 max-w-sm">
+						<Input placeholder="you@example.com" />
+					</div>
+				</div>
+
+				<div class="border-t pt-4">
+					<p class="text-label">Title dividers</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						A citron rule under a heading, in two tokenised widths. Applied to
+						the heading itself so it always travels with it.
+					</p>
+					<div class="mt-4 flex flex-wrap items-start gap-10">
 						<div>
-							<div class={`${c.cls} h-16 rounded-lg border`} />
-							<p class="mt-2 text-label">{c.role}</p>
-							<p class="text-muted-foreground font-mono text-caption">{c.hex}</p>
+							<p class="text-h3 title-rule-lg">Large</p>
+							<p class="text-muted-foreground text-caption mt-3">
+								<code>title-rule-lg</code> · 100px · hero headline
+							</p>
 						</div>
-					))
-				}
-			</div>
+						<div>
+							<p class="text-h3 title-rule">Small</p>
+							<p class="text-muted-foreground text-caption mt-3">
+								<code>title-rule</code> · 70px · section and page titles
+							</p>
+						</div>
+					</div>
+				</div>
+			</CardContent>
+		</Card>
 
-			<div>
-				<p class="mb-2 text-label">Semantic tokens</p>
-				<div class="flex flex-wrap gap-2">
+		{/* ---------------------------------------------------------------- */}
+		<Card className="mt-6">
+			<CardHeader>
+				<CardTitle>Typography</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<p class="text-muted-foreground text-body-sm">
+					Use the semantic step, not a raw Tailwind size — <code>text-h2</code>,
+					never <code>text-3xl</code>. Each step carries its own size,
+					line-height, letter-spacing <em>and weight</em>, so one utility fully
+					describes the style.
+					<strong class="text-foreground">Nunito</strong> is for headings and
+					controls (buttons, nav links);
+					<strong class="text-foreground">Open Sans</strong> is for everything
+					else. Heading elements get their step automatically, so plain markdown
+					is styled without any classes.
+				</p>
+
+				<p class="text-muted-foreground text-body-sm">
+					<strong class="text-foreground">
+						Don't set weight by hand on a scale step.
+					</strong>
+					If you reach for <code>font-medium</code>, the step is probably wrong —
+					<code>text-label</code> exists precisely because
+					<code>text-body-sm font-medium</code> was being repeated. Inline
+					<code>&lt;strong&gt;</code> is pinned to 600 in the base layer, so
+					emphasis never needs a class either.
+				</p>
+
+				<div class="flex flex-col gap-5 border-t pt-4">
 					{
-						semantic.map((cls) => (
-							<div class="text-center">
-								<div class={`${cls} size-12 rounded-md border`} />
-								<p class="text-muted-foreground mt-1 font-mono text-caption">
-									{cls.replace('bg-', '')}
+						typeScale.map((t) => (
+							<div class="flex flex-col gap-1">
+								<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+									<code class="text-muted-foreground shrink-0 font-mono text-caption">
+										{t.cls}
+									</code>
+									<span class="text-muted-foreground shrink-0 font-mono text-caption">
+										{t.face}
+									</span>
+									<span class="text-muted-foreground shrink-0 font-mono text-caption">
+										{t.w}
+									</span>
+								</div>
+								<p class={`${t.cls} ${t.face === 'Nunito' ? 'font-heading' : ''}`}>
+									The quick brown fox
 								</p>
+								<p class="text-muted-foreground text-caption">{t.use}</p>
 							</div>
 						))
 					}
 				</div>
-			</div>
+			</CardContent>
+		</Card>
 
-			<div class="space-y-3 border-t pt-4">
-				<p class="text-label">Button variants</p>
-				<p class="text-muted-foreground text-caption">
-					Primary and secondary are the standard pair for calls to action.
-				</p>
-				<div class="flex flex-wrap items-center gap-3">
-					<Button>Primary</Button>
-					<Button variant="secondary">Secondary</Button>
-					<Button variant="outline">Outline</Button>
-					<Button variant="ghost">Ghost</Button>
-					<Button variant="destructive">Destructive</Button>
-					<Button variant="link">Link</Button>
+		<Card className="mt-6">
+			<CardHeader>
+				<CardTitle>Layout</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<div>
+					<p class="text-label">Breakpoints</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Tailwind defaults, plus <code>3xl</code> aligned to the page shell.
+						Mobile-first — style the small case, then add prefixes upward.
+					</p>
+					<div class="mt-3 overflow-x-auto">
+						<table class="w-full text-left">
+							<thead>
+								<tr class="text-muted-foreground text-caption">
+									<th class="py-1 pr-4">Prefix</th>
+									<th class="py-1 pr-4">Min width</th>
+									<th class="py-1">Use</th>
+								</tr>
+							</thead>
+							<tbody>
+								{
+									breakpoints.map((b) => (
+										<tr class="border-border/60 border-t">
+											<td class="py-1.5 pr-4 font-mono text-caption">{b.name}</td>
+											<td class="text-muted-foreground py-1.5 pr-4 font-mono text-caption">
+												{b.value}
+											</td>
+											<td class="text-muted-foreground py-1.5 text-caption">{b.use}</td>
+										</tr>
+									))
+								}
+							</tbody>
+						</table>
+					</div>
 				</div>
-			</div>
 
-			<div class="space-y-3 border-t pt-4">
-				<p class="text-label">Button sizes</p>
-				<p class="text-muted-foreground text-caption">
-					<strong class="text-foreground">default</strong> (h-10) and
-					<strong class="text-foreground">lg</strong> (h-12) are the
-					standard sizes. <code>xs</code> and <code>sm</code> are compact variants
-					for dense UI like the nav bar — don't use them as page-level actions.
-				</p>
-				<div class="flex flex-wrap items-end gap-3">
-					{
-						(['xs', 'sm', 'default', 'lg'] as const).map((size) => (
-							<div class="flex flex-col items-center gap-1.5">
-								<Button size={size}>{size}</Button>
-								<span class="text-muted-foreground font-mono text-caption">
-									{size}
-								</span>
-							</div>
-						))
-					}
+				<div class="border-t pt-4">
+					<p class="text-label">Container widths</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Pick by content type. <code>max-w-page</code> is a shell width, not a
+						reading width — prose inside a full-width section still needs
+						<code>max-w-prose</code>.
+					</p>
+					<div class="mt-3 space-y-3">
+						{
+							containers.map((c) => (
+								<div>
+									<div class="flex flex-wrap items-baseline gap-x-3">
+										<code class="font-mono text-caption">{c.cls}</code>
+										<span class="text-muted-foreground font-mono text-caption">
+											{c.value}
+										</span>
+									</div>
+									<div class={`${c.cls} bg-secondary mt-1 h-2 rounded-sm`} />
+									<p class="text-muted-foreground text-caption mt-1">{c.use}</p>
+								</div>
+							))
+						}
+					</div>
 				</div>
-				<div class="flex flex-wrap items-end gap-3">
-					{
-						(['icon-xs', 'icon-sm', 'icon', 'icon-lg'] as const).map((size) => (
-							<div class="flex flex-col items-center gap-1.5">
-								<Button size={size} variant="secondary" aria-label={size}>
-									<Star />
-								</Button>
-								<span class="text-muted-foreground font-mono text-caption">
-									{size}
-								</span>
-							</div>
-						))
-					}
-				</div>
-			</div>
 
-			<div class="space-y-3 border-t pt-4">
-				<p class="text-label">Badges</p>
-				<div class="flex flex-wrap gap-2">
-					<Badge>Default</Badge>
-					<Badge variant="secondary">Secondary</Badge>
-					<Badge variant="outline">Outline</Badge>
-					<Badge variant="destructive">Destructive</Badge>
+				<div class="border-t pt-4">
+					<p class="text-label">Viewport height</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Sections are <code>min-h-dvh</code>, so vertical space constrains the
+						layout as much as width does. The awkward viewport isn't a narrow
+						phone — it's a <strong class="text-foreground">short, wide</strong>
+						one: a laptop at 1440×720, a landscape phone, or any browser at 150%
+						zoom. That's where a viewport-tall section stops fitting.
+					</p>
+					<div class="mt-3 space-y-2">
+						<div class="flex flex-wrap items-baseline gap-x-3">
+							<code class="font-mono text-caption">short:</code>
+							<span class="text-muted-foreground font-mono text-caption">
+								height ≤ 600px
+							</span>
+						</div>
+						<p
+							class="border-border/60 text-caption rounded-lg border border-dashed px-3 py-2"
+						>
+							<span class="short:hidden">
+								Your viewport is <strong>taller</strong> than 600px — the
+								<code>short:</code> variant is inactive.
+							</span>
+							<span class="hidden short:inline">
+								Your viewport is <strong>600px or shorter</strong> — the
+								<code>short:</code> variant is active right now.
+							</span>
+						</p>
+					</div>
 				</div>
-			</div>
+
+				<div class="border-t pt-4">
+					<p class="text-label">Scroll behaviour</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Snap scrolling is on by default — it's the house style, and
+						full-height sections assume it. Pages that are really one long
+						document rather than a sequence of scenes can opt out:
+					</p>
+					<pre
+						class="border-border/60 text-caption mt-3 overflow-x-auto rounded-lg border px-3 py-2 font-mono"><code>&lt;BaseLayout title="…" snap=&#123;false&#125;&gt;</code></pre>
+					<p class="text-muted-foreground text-caption mt-2">
+						That drops both the CSS snapping and the JS scroll controller, so an
+						opted-out page binds no scroll listeners at all. This page uses it —
+						which is why scrolling here feels normal.
+					</p>
+				</div>
+			</CardContent>
+		</Card>
+
+		<Card className="mt-6">
+			<CardHeader>
+				<CardTitle>Architecture</CardTitle>
+			</CardHeader>
+			<CardContent className="space-y-6">
+				<div class="overflow-x-auto">
+					<table class="w-full text-left">
+						<thead>
+							<tr class="text-muted-foreground text-caption">
+								<th class="py-1 pr-4">Layer</th>
+								<th class="py-1 pr-4">Lives in</th>
+								<th class="py-1">Owns</th>
+							</tr>
+						</thead>
+						<tbody>
+							{
+								architecture.map((a) => (
+									<tr class="border-border/60 border-t align-top">
+										<td class="py-1.5 pr-4 font-mono text-caption">{a.tech}</td>
+										<td class="text-muted-foreground py-1.5 pr-4 font-mono text-caption">
+											{a.where}
+										</td>
+										<td class="text-muted-foreground py-1.5 text-caption">{a.owns}</td>
+									</tr>
+								))
+							}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="border-t pt-4">
+					<p class="text-label">Hydration</p>
+					<p class="text-muted-foreground text-caption mt-1">
+						Components are static by default — no <code>client:*</code> means
+						they render to HTML and ship zero JS.
+						<strong class="text-foreground">
+							A client directive applies only where Astro mounts React; nested
+							components can't opt in on their own.
+						</strong>
+						<code>HeroGlobe</code> needs an effect to drive its canvas, so the
+						directive goes on its outermost Astro-mounted ancestor:
+					</p>
+					<pre
+						class="border-border/60 text-caption mt-3 overflow-x-auto rounded-lg border px-3 py-2 font-mono"><code>&lt;Hero client:load /&gt;   {/* globe animates */}
+&lt;Skills /&gt;              {/* static, 0 KB */}</code></pre>
+				</div>
+
+				<div class="border-t pt-4">
+					<p class="text-label">Gotchas</p>
+					<ul class="text-muted-foreground text-caption mt-1 list-disc space-y-1 pl-4">
+						<li>
+							React components take <code>className</code>, not
+							<code>class</code>. Astro passes props through verbatim, so
+							<code>class</code> silently does nothing.
+						</li>
+						<li>
+							<code>&lt;Button asChild&gt;</code> does not work from
+							<code>.astro</code>: Radix clones a React element child, and Astro
+							hands slot content over as opaque HTML. Use
+							<code>buttonVariants(&#123;…&#125;)</code> on a plain
+							<code>&lt;a&gt;</code> instead.
+						</li>
+						<li>
+							Any new type-scale step must also be registered in
+							<code>lib/utils.ts</code>, or tailwind-merge treats it as a colour
+							and silently strips it inside <code>cn()</code>.
+						</li>
+					</ul>
+				</div>
 			</CardContent>
 		</Card>
 	</Section>

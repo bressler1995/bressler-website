@@ -16,6 +16,34 @@
    of what it reads like. A custom variant keeps it height-based and one-way. */
 @custom-variant short (@media (height <= 600px));
 
+/* Accent rule under a title. Applied to the heading itself so it always travels
+   with it and can't drift out of alignment. Two sizes: `lg` for a page's hero
+   headline, the default for section and page titles. Widths are tokens so the
+   pair stays in proportion if either is retuned. */
+@utility title-rule {
+  &::after {
+    content: "";
+    display: block;
+    width: var(--rule-width-sm);
+    height: 3px;
+    margin-top: 0.875rem;
+    border-radius: 9999px;
+    background-color: var(--rule);
+    }
+  }
+
+@utility title-rule-lg {
+  &::after {
+    content: "";
+    display: block;
+    width: var(--rule-width-lg);
+    height: 4px;
+    margin-top: 1.125rem;
+    border-radius: 9999px;
+    background-color: var(--rule);
+    }
+  }
+
 @theme inline {
     /* Nunito carries headings and buttons — anything that should feel
        prominent. Open Sans carries body copy and incidental text. */
@@ -50,6 +78,17 @@
     --container-page: 100rem; /* 1600px */
     --container-content: 80rem; /* 1280px */
 
+    /* Motion. A gentle ease-in-out: it accelerates out of rest and decelerates
+       into place, which is what reads as mass, but without the long near-still
+       phase a steeper curve has at the ends.
+
+       That matters at longer durations. easeInOutCubic (0.65,0,0.35,1) holds
+       still for ~120ms of an 800ms move before visibly starting, then rushes
+       the middle — the hesitation-then-jump reads as choppy. This curve starts
+       moving at ~60ms and has a flatter velocity profile (peak 2.6x mean vs
+       2.9x), so the same duration feels continuous. */
+    --ease-slide: cubic-bezier(0.33, 0, 0.2, 1);
+
     /* --- Type scale ---------------------------------------------------------
        Semantic names, not raw steps: use `text-h2` for a section heading rather
        than picking `text-3xl` by eye. Each token carries its own line-height,
@@ -63,26 +102,30 @@
     --text-display: clamp(2.5rem, 5vw + 1rem, 3.75rem);
     --text-display--line-height: 1.02;
     --text-display--letter-spacing: -0.03em;
-    --text-display--font-weight: 600;
+    --text-display--font-weight: 800;
 
     --text-h1: clamp(2rem, 3vw + 0.75rem, 2.75rem);
     --text-h1--line-height: 1.1;
     --text-h1--letter-spacing: -0.02em;
-    --text-h1--font-weight: 600;
+    --text-h1--font-weight: 700;
 
     --text-h2: clamp(1.625rem, 1.5vw + 1rem, 2rem);
     --text-h2--line-height: 1.2;
     --text-h2--letter-spacing: -0.015em;
-    --text-h2--font-weight: 600;
+    --text-h2--font-weight: 700;
 
     --text-h3: 1.375rem;
     --text-h3--line-height: 1.3;
     --text-h3--letter-spacing: -0.01em;
-    --text-h3--font-weight: 600;
+    --text-h3--font-weight: 700;
 
     --text-h4: 1.125rem;
     --text-h4--line-height: 1.4;
     --text-h4--font-weight: 600;
+
+    /* Nunito Variable runs 200–1000, so the heading steps sit well inside its
+       range. Display takes 800 for hero impact; h1–h3 take 700; h4 stays at 600
+       since a minor heading turning bold competes with the section above it. */
 
     /* Body steps declare weight 400 explicitly rather than inheriting it, so a
        step never renders differently depending on where it's nested. */
@@ -119,8 +162,8 @@
        need the literal brand color (logo, illustration); prefer the semantic
        tokens below for UI so light/dark and contrast are handled for you. */
     --color-brand-plum: var(--brand-plum);
-    --color-brand-iris: var(--brand-iris);
-    --color-brand-mist: var(--brand-mist);
+    --color-brand-magenta: var(--brand-magenta);
+    --color-brand-citron: var(--brand-citron);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -135,6 +178,7 @@
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
     --color-ring: var(--ring);
+    --color-ring-accent: var(--ring-accent);
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
@@ -167,137 +211,207 @@
        @custom-variant above — scripts read this rather than hardcoding a copy. */
     --viewport-short: 600px;
 
-    /* --- Brand palette (source of truth) ------------------------------------
-       plum  #401F3E  primary brand colour
-       iris  #3F2E56  secondary / supporting
-       mist  #759AAB  low-emphasis accents, borders, large text only
+    /* Title divider widths. lg sits under a hero headline, sm under section and
+       page titles. */
+    --rule-width-lg: 100px;
+    --rule-width-sm: 70px;
 
-       The semantic tokens below reference these wherever the value *is* the
-       brand colour. Tints and shades are written as their own hex: deriving
-       them in CSS needs color-mix() or relative colour syntax, and both compile
-       to @supports fallbacks here that resolve to the wrong colour. */
-    --brand-plum: #401f3e;
-    --brand-iris: #3f2e56;
-    --brand-mist: #759aab;
+    /* ========================================================================
+       PALETTE — the only place a colour is *defined*.
 
-    /* --- Semantic tokens (light) -------------------------------------------- */
-    --background: #fefcfe;
-    --foreground: #221521;
+       Every colour in the system is one of three brand hues at a chosen
+       lightness. Nothing below this block invents a value; the semantic tokens
+       are all references, so this is the one place to edit to reskin the site.
+
+       Steps run light (low number) to dark (high), and the comment on each is
+       its OKLCH lightness — that's the thing that was actually chosen. Saturation
+       drops as steps approach white or black, which is why a pale plum reads as
+       a tint rather than a wash of purple.
+       ======================================================================== */
+
+    /* --- Plum, hue 330° — brand base: pages, surfaces, text, secondary ---- */
+    --plum-25:  #fefcfe; /* 99% — light page */
+    --plum-50:  #fbf9fb; /* 98% — label on a light fill */
+    --plum-75:  #f9f5f9; /* 97% — sidebar (light) */
+    --plum-100: #f4f0f4; /* 96% — body text (dark); accent label (dark) */
+    --plum-150: #f0e8ef; /* 94% — muted surface (light) */
+    --plum-200: #f1e3ef; /* 93% — accent surface (light) */
+    --plum-300: #e4dbe3; /* 90% — border and input (light) */
+    --plum-400: #be95ba; /* 72% — lifted, for fills on dark backgrounds */
+    --plum-600: #5f4f5d; /* 45% — line work on light backgrounds */
+    --plum-750: #3d2d3b; /* 32% — accent surface (dark); accent label (light) */
+    --plum-780: #2c232b; /* 27% — muted surface (dark) */
+    --plum-700: #401f3e; /* 30% — THE BRAND HEX */
+    --plum-800: #221521; /* 22% — ink / body text (light) */
+    --plum-850: #1e151d; /* 21% — raised dark surface: card, popover */
+    --plum-900: #191118; /* 19% — sidebar (dark) */
+    --plum-950: #130c12; /* 17% — dark page */
+
+    /* --- Magenta, hue 351° — every button colour, primary and secondary ---
+       Primary and secondary share this one hue and are told apart by lightness
+       alone, which is what keeps them feeling like one family. (Hue is a poor
+       separator anyway: the palette's original failure was two colours 27° apart
+       at the same lightness, which read as identical.) */
+    --magenta-100: #fce3ed; /* 94% — label on a dark magenta surface */
+    --magenta-200: #e9c5d4; /* 86% — secondary button surface (light) */
+    --magenta-400: #e97ab0; /* 72% — primary fill on dark, takes a dark label */
+    --magenta-500: #c94f8e; /* 61% — THE BRAND HEX (too mid to label at AA) */
+    --magenta-600: #b43f7d; /* 55% — primary fill on light, takes a white label */
+    --magenta-700: #74134b; /* 38% — label on a pale magenta surface */
+    --magenta-800: #4a2e3b; /* 34% — secondary button surface (dark) */
+
+    /* --- Citron, hue 110° — the tertiary accent ---------------------------
+       119° from magenta, near its complement, so it reads as a deliberate
+       counterpoint rather than a third competing brand colour. Used only where
+       it should be seen: title dividers, the secondary focus ring, charts.
+
+       The brand hex is 91% lightness — brilliant on the dark page (15:1) and
+       invisible on the light one (1.26:1). Light mode therefore takes a much
+       darker step, which reads as olive rather than citron. That is a property
+       of a near-white page, not a choice. */
+    --citron-200: #e7e97a; /* 91% — THE BRAND HEX; divider + ring (dark) */
+    --citron-500: #b4b549; /* 75% — mid step, charts */
+    --citron-600: #92921e; /* 64% — divider + ring (light) */
+
+    /* --- Off-palette ------------------------------------------------------
+       Destructive is a true red — deliberately outside the brand hues so a
+       warning never reads as decoration. Charts 3 and 5 interpolate past the
+       brand hues so adjacent series stay distinguishable. */
+    --red-500: #e7000b;
+    --red-400: #ff6467;
+    --chart-mid-light: #6981ab;
+    --chart-far-light: #8db7b9;
+    --chart-mid-dark:  #8499be;
+    --chart-far-dark:  #9cc7c9;
+
+    /* --- Brand aliases ----------------------------------------------------
+       Friendly names for the three hexes a designer would hand you. These are
+       what `bg-brand-*` utilities resolve to. */
+    --brand-plum: var(--plum-700);
+    --brand-magenta: var(--magenta-500);
+    --brand-citron: var(--citron-200);
+
+    /* ========================================================================
+       SEMANTIC TOKENS (light) — references only.
+       ======================================================================== */
+    --background: var(--plum-25);
+    --foreground: var(--plum-800);
     --card: #ffffff;
-    --card-foreground: #221521;
+    --card-foreground: var(--plum-800);
     --popover: #ffffff;
-    --popover-foreground: #221521;
+    --popover-foreground: var(--plum-800);
 
-    /* Plum at full strength; its label measures 13.5:1. */
-    --primary: var(--brand-plum);
-    --primary-foreground: #fbf9fb;
+    /* Magenta is the call to action — the most saturated colour in the palette,
+       so it's what pulls the eye. The brand hex itself is mid-lightness and
+       can't carry a label at AA either way (4.3:1 at best), hence the deeper
+       step: white on it measures 6.26:1. */
+    --primary: var(--magenta-600);
+    --primary-foreground: var(--plum-50);
 
-    /* Iris is too dark to sit beside plum as a surface (1.17:1 apart), so the
-       surface is a pale iris tint and the brand colour carries the text. */
-    --secondary: #efeaf7;
-    --secondary-foreground: var(--brand-iris);
+    /* Plum takes the calmer secondary role: a pale plum surface carrying the
+       brand colour as its label, 11.94:1. It sits 0.467 from primary in OKLab,
+       so the two buttons can't be confused — the pairing that started this
+       palette was 0.053 apart and read as the same button. */
+    --secondary: var(--magenta-200);
+    --secondary-foreground: var(--magenta-700);
 
-    --muted: #edf3f6;
-    /* Mist darkened for text — raw #759AAB is only 3.01:1 on white and fails
-       AA. This is 6.33:1. Use --brand-mist itself for borders and large text. */
-    --muted-foreground: #406373;
+    --muted: var(--plum-150);
+    /* Secondary text is --foreground at 70%, deliberately translucent so it
+       sits correctly on any surface and over the hero gradient rather than
+       being tuned for one background. Worst case anywhere is 5.75:1. */
+    --muted-foreground: #221521b3;
 
-    --accent: #daebf4;
-    --accent-foreground: #143846;
+    --accent: var(--plum-200);
+    --accent-foreground: var(--plum-750);
 
-    --destructive: #e7000b;
-    --border: #d6e0e4;
-    --input: #d6e0e4;
-    --ring: var(--brand-plum);
+    --destructive: var(--red-500);
+    --border: var(--plum-300);
+    --input: var(--plum-300);
+    /* Focus rings. Deliberately a *different step* from the fill they surround:
+       a ring in the same colour as the button merges with it and reads as a
+       fatter button rather than a ring. Light rings darker than the fill, dark
+       rings lighter — but still saturated, so they read as magenta rather than
+       as a white outline. */
+    /* Primary buttons: the magenta step for this mode at 70% alpha. The brand
+       hex at 70% only reaches 2.6:1 against the page — under the 3:1 a focus
+       indicator needs — so each mode uses its own step. This one is 4.92:1. */
+    --ring: #74134bb3;
+    /* Secondary buttons and menu items take the accent, so a focused secondary
+       is distinguishable from a focused primary while tabbing. */
+    --ring-accent: var(--citron-600);
+    /* Decorative rule under section titles. Mist's real home in the UI: it's
+       the one place a low-chroma cool tone reads as intentional rather than
+       muddy, because it sits alone against the page instead of tinting a
+       surface. Purely decorative, so 3:1 against the page is the bar. */
+    --rule: var(--citron-600);
 
-    /* Chart ramp: 1/2/4 track the brand hues; 3 and 5 reach past them so
-       adjacent series stay distinguishable. */
-    --chart-1: #71426d;
-    --chart-2: #735c94;
-    --chart-3: #6981ab;
-    --chart-4: var(--brand-mist);
-    --chart-5: #8db7b9;
+    --chart-1: var(--plum-700);
+    --chart-2: var(--magenta-500);
+    --chart-3: var(--chart-mid-light);
+    --chart-4: var(--citron-500);
+    --chart-5: var(--chart-far-light);
 
     --radius: 0.625rem;
 
-    --sidebar: #f9f5f9;
-    --sidebar-foreground: #221521;
-    --sidebar-primary: var(--brand-plum);
-    --sidebar-primary-foreground: #fbf9fb;
-    --sidebar-accent: #daebf4;
-    --sidebar-accent-foreground: #143846;
-    --sidebar-border: #d6e0e4;
-    --sidebar-ring: var(--brand-plum);
+    --sidebar: var(--plum-75);
+    --sidebar-foreground: var(--plum-800);
+    --sidebar-primary: var(--magenta-600);
+    --sidebar-primary-foreground: var(--plum-50);
+    --sidebar-accent: var(--plum-200);
+    --sidebar-accent-foreground: var(--plum-750);
+    --sidebar-border: var(--plum-300);
+    --sidebar-ring: var(--ring);
 
-    /* Hero globe. Lines are drawn at full strength on the canvas, then knocked
-       back by a scrim of the page background — that keeps the wireframe crisp
-       rather than thin-and-grey. Light mode can't use white (invisible on a
-       near-white page), so it takes a muted plum.
-       --hero-globe-scrim is --background plus alpha; keep the two in sync. */
-    --hero-globe-line: #5f4f5d;
-    --hero-globe-scrim: #fefcfe8c;
-
-    /* Hero backdrop wash: the brand colours at very low alpha. Even with all
-       three gradients overlapping, muted text over them measures 4.89:1 —
-       raising these breaks AA on the hero paragraph. */
-    --hero-glow-1: #401f3e0f;
-    --hero-glow-2: #3f2e560d;
-    --hero-glow-3: #759aab14;
 }
 
 .dark {
-    --background: #130c12;
-    --foreground: #f4f0f4;
-    --card: #1e151d;
-    --card-foreground: #f4f0f4;
-    --popover: #1e151d;
-    --popover-foreground: #f4f0f4;
+    --background: var(--plum-950);
+    --foreground: var(--plum-100);
+    --card: var(--plum-850);
+    --card-foreground: var(--plum-100);
+    --popover: var(--plum-850);
+    --popover-foreground: var(--plum-100);
 
-    /* The raw brand hex is far too dark to read here, so plum is lifted; its
-       dark label measures 7.13:1. */
-    --primary: #be95ba;
-    --primary-foreground: #1e111d;
+    /* Magenta lifted for the dark page; its dark label measures 6.83:1. */
+    --primary: var(--magenta-400);
+    --primary-foreground: var(--plum-850);
 
-    --secondary: #312a3d;
-    --secondary-foreground: #eae5f3;
+    --secondary: var(--magenta-800);
+    --secondary-foreground: var(--magenta-100);
 
-    --muted: #1c292e;
-    --muted-foreground: #86abbc;
+    --muted: var(--plum-780);
+    /* --foreground at 70%. Worst case across every dark surface is 6.34:1. */
+    --muted-foreground: #f4f0f4b3;
 
-    --accent: #22363f;
-    --accent-foreground: #e5edf0;
+    --accent: var(--plum-750);
+    --accent-foreground: var(--plum-100);
 
-    --destructive: #ff6467;
+    --destructive: var(--red-400);
+    /* Borders on dark are white at low alpha rather than a palette step: they
+       need to read against card, popover and page alike. */
     --border: #ffffff1f;
     --input: #ffffff26;
-    --ring: #7195a6;
+    --ring: #e97ab0b3; /* magenta-400 @ 70% — 4.06:1 against the dark page */
+    --ring-accent: var(--citron-200);
+    --rule: var(--citron-200);
 
-    --chart-1: #be95ba;
-    --chart-2: #a794c6;
-    --chart-3: #8499be;
-    --chart-4: #86abbc;
-    --chart-5: #9cc7c9;
+    --chart-1: var(--plum-400);
+    --chart-2: var(--magenta-400);
+    --chart-3: var(--chart-mid-dark);
+    --chart-4: var(--citron-500);
+    --chart-5: var(--chart-far-dark);
 
-    --sidebar: #191118;
-    --sidebar-foreground: #f4f0f4;
-    --sidebar-primary: #be95ba;
-    --sidebar-primary-foreground: #1e111d;
-    --sidebar-accent: #22363f;
-    --sidebar-accent-foreground: #e5edf0;
+    --sidebar: var(--plum-900);
+    --sidebar-foreground: var(--plum-100);
+    --sidebar-primary: var(--magenta-400);
+    --sidebar-primary-foreground: var(--plum-850);
+    --sidebar-accent: var(--plum-750);
+    --sidebar-accent-foreground: var(--plum-100);
     --sidebar-border: #ffffff1f;
-    --sidebar-ring: #7195a6;
+    --sidebar-ring: var(--ring);
 
-    /* White wireframe against the near-black page, veiled by the scrim.
-       Mirrors --background above at 55%. */
-    --hero-globe-line: #ffffff;
-    --hero-globe-scrim: #130c128c;
-
-    /* Lifted brand hues so they read as a glow rather than muddying the page.
-       Stacked, muted text over them measures 5.28:1. */
-    --hero-glow-1: #925b8e2e;
-    --hero-glow-2: #735c9424;
-    --hero-glow-3: #6087981a;
 }
+
 
 
 @layer base {

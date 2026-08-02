@@ -1,41 +1,58 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Section from '@/components/Section';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const posts = [
 	{ title: 'First post', date: '2026-07-01', blurb: 'Placeholder excerpt.' },
 	{ title: 'Second post', date: '2026-06-14', blurb: 'Placeholder excerpt.' },
 	{ title: 'Third post', date: '2026-05-30', blurb: 'Placeholder excerpt.' },
+	{ title: 'Fourth post', date: '2026-05-11', blurb: 'Placeholder excerpt.' },
+	{ title: 'Fifth post', date: '2026-04-22', blurb: 'Placeholder excerpt.' },
+	{ title: 'Sixth post', date: '2026-04-03', blurb: 'Placeholder excerpt.' },
 ];
+
+/**
+ * The whole card is the link, so the hit target is the card rather than just
+ * the title. Focus styling sits on the anchor (matching nav links, which use
+ * focus-visible rather than the buttons' click-visible focus) and the card
+ * reacts through `group-*`.
+ */
+const cardLink =
+	'group focus-visible:ring-ring-accent focus-visible:ring-offset-background rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-offset-[3px]';
 ---
 
 <BaseLayout title="Blog — Brian Ressler">
 	<Section align="start">
-		<h1 class="text-h1">Blog</h1>
-	<p class="text-muted-foreground mt-2">
-		Placeholder list. Wire this to a content collection of MDX posts later.
-	</p>
+		<h1 class="text-h1 title-rule">Blog</h1>
+		<p class="text-muted-foreground mt-2">
+			Placeholder cards. Wire this to a content collection of MDX posts later.
+		</p>
 
-	<div class="mt-8 flex flex-col">
-		{
-			posts.map((post, i) => (
-				<>
-					{i > 0 && <Separator />}
-					<article class="group py-6">
-						<a href="#" class="block">
-							<h2 class="text-h3 group-hover:text-primary transition-colors">
-								{post.title}
-							</h2>
-							<time class="text-muted-foreground mt-1 block text-body-sm" datetime={post.date}>
-								{post.date}
-							</time>
-							<p class="text-muted-foreground mt-2 text-body-sm">{post.blurb}</p>
-						</a>
-					</article>
-				</>
-			))
-		}
+		{/* One column on phones, two from sm, four once past tablet width. */}
+		<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			{
+				posts.map((post) => (
+					<a href="#" class={cardLink}>
+						<Card className="group-hover:border-primary/50 h-full transition-colors">
+							<CardHeader>
+								<CardTitle className="group-hover:text-primary transition-colors">
+									{post.title}
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2">
+								<time
+									class="text-muted-foreground text-caption block"
+									datetime={post.date}
+								>
+									{post.date}
+								</time>
+								<p class="text-muted-foreground text-body-sm">{post.blurb}</p>
+							</CardContent>
+						</Card>
+					</a>
+				))
+			}
 		</div>
 	</Section>
 </BaseLayout>

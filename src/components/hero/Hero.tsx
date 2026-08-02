@@ -1,8 +1,10 @@
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
-import HeroGlobe from '@/components/HeroGlobe';
-import HeroGradient from '@/components/HeroGradient';
+import HeroGlobe from './HeroGlobe';
+import HeroGradient from './HeroGradient';
 import Section from '@/components/Section';
+
+import './hero.css';
 
 export function Hero() {
 	return (
@@ -26,7 +28,7 @@ export function Hero() {
 				Available for work
 			</Badge>
 
-			<h1 className="text-display mt-6 text-balance">Brian Ressler</h1>
+			<h1 className="text-display title-rule-lg mt-6 text-balance">Brian Ressler</h1>
 
 			<p className="text-body-lg text-muted-foreground mt-4 max-w-xl text-pretty">
 				Software engineer building fast, accessible web applications. Placeholder

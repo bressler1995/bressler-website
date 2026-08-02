@@ -1,0 +1,45 @@
+/**
+ * Hero-only design tokens.
+ *
+ * These live here rather than in global.css because nothing outside this
+ * directory reads them — they describe one component's backdrop, not the design
+ * system. Imported by Hero.tsx, so they only ship on pages that render a hero.
+ *
+ * They still have to be declared at :root / .dark rather than on the component
+ * itself: the canvas script reads them off documentElement, and they need to
+ * flip with the theme class, which sits on <html>.
+ *
+ * Values are derived from the palette in global.css. CSS can't attach an alpha
+ * channel to a var(), so the translucent ones repeat their palette hex with an
+ * alpha suffix — the comment on each names the step it comes from.
+ */
+
+:root {
+	/* Wireframe lines, then a scrim of the page background knocked over them.
+	   Drawing at full strength and veiling keeps the lines crisp rather than
+	   thin-and-grey. Light mode can't use white — it would vanish on a
+	   near-white page — so it takes a mid plum.
+	   --hero-globe-scrim mirrors --background at 55%; keep them in step. */
+	--hero-globe-line: var(--plum-600);
+	--hero-globe-scrim: #fefcfe8c;
+
+	/* Backdrop wash: the brand colours at very low alpha. Even with all three
+	   gradients overlapping, muted text over them measures 5.81:1. Raising
+	   these breaks AA on the hero paragraph. */
+	--hero-glow-1: #401f3e0f; /* plum-700     @ 6%   */
+	--hero-glow-2: #c94f8e09; /* magenta-500  @ 3.5% */
+	--hero-glow-3: #759aab14; /* mist         @ 8%   */
+}
+
+.dark {
+	/* White wireframe against the near-black page, veiled by the scrim.
+	   Mirrors --background at 55%. */
+	--hero-globe-line: #ffffff;
+	--hero-globe-scrim: #130c128c;
+
+	/* Lifted brand hues so they read as a glow rather than muddying the page.
+	   Stacked, muted text over them measures 6.82:1. */
+	--hero-glow-1: #925b8e20; /* plum, lifted    @ 12.5% */
+	--hero-glow-2: #b256831c; /* magenta, lifted @ 11%   */
+	--hero-glow-3: #6087981a; /* mist, lifted    @ 10%   */
+}

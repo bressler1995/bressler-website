@@ -25,7 +25,7 @@ const groups = [
 export function Skills() {
 	return (
 		<Section id="skills">
-			<h2 className="text-h2">Skills</h2>
+			<h2 className="text-h2 title-rule">Skills</h2>
 			<p className="text-muted-foreground mt-2">
 				Placeholder groupings — edit freely.
 			</p>
