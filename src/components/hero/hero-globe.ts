@@ -62,6 +62,31 @@ const AXIS_X = 1.0;
 const AXIS_Y = 1.0;
 const AXIS_Z = 1.0;
 
+/**
+ * How far the pointer can push the form off its resting orientation, in
+ * radians (~6° of roll, ~7° of tilt). Deliberately small: this should read as
+ * the shape acknowledging the cursor, not tracking it. Tilt gets the longer
+ * throw of the two because vertical is the more legible of the two gestures
+ * and reads as the primary one.
+ *
+ * Horizontal pointer movement deliberately drives *roll* — a lean about the
+ * axis pointing at the viewer — rather than yaw. Yaw shares an axis with the
+ * ambient spin, so pushing it made the rotation visibly speed up and slow down
+ * with the cursor instead of reading as a separate gesture. Roll and tilt are
+ * both off that axis, so together they lean the form diagonally and leave the
+ * rotation running at a constant rate underneath.
+ */
+const POINTER_ROLL = 0.1;
+const POINTER_TILT = 0.12;
+
+/**
+ * Time constant for easing toward the pointer, in milliseconds — the offset
+ * closes ~63% of the remaining distance every interval, so it lands in a bit
+ * under a second. Slow enough that the shape feels like it has mass, which is
+ * also what keeps a fast flick across the hero from looking twitchy.
+ */
+const POINTER_SETTLE = 220;
+
 /** Depth is quantised into this many alpha levels so each is one stroke call. */
 const DEPTH_BUCKETS = 8;
 
@@ -156,6 +181,13 @@ export function initHeroGlobe(): () => void {
 	let lastTime = 0;
 	let color = FALLBACK_COLOR;
 
+	// Pointer parallax: targets are where the cursor says the form should sit,
+	// offsets are where it actually is. tick() eases the second toward the first.
+	let targetRoll = 0;
+	let targetTilt = 0;
+	let rollOffset = 0;
+	let tiltOffset = 0;
+
 	const readColor = () => {
 		const value = getComputedStyle(document.documentElement)
 			.getPropertyValue('--hero-globe-line')
@@ -192,8 +224,10 @@ export function initHeroGlobe(): () => void {
 
 		const cosA = Math.cos(angle);
 		const sinA = Math.sin(angle);
-		const cosT = Math.cos(TILT * DEG);
-		const sinT = Math.sin(TILT * DEG);
+		const cosT = Math.cos(TILT * DEG + tiltOffset);
+		const sinT = Math.sin(TILT * DEG + tiltOffset);
+		const cosR = Math.cos(rollOffset);
+		const sinR = Math.sin(rollOffset);
 
 		const buckets: Path2D[] = Array.from(
 			{ length: DEPTH_BUCKETS },
@@ -217,10 +251,17 @@ export function initHeroGlobe(): () => void {
 				const ty = y * cosT - rz * sinT;
 				const tz = y * sinT + rz * cosT;
 
+				// Roll about the view axis. Applied to the two screen-plane
+				// coordinates only, so depth — and therefore the alpha bucketing
+				// below — is untouched. Order against the perspective divide
+				// doesn't matter: the divide is a scalar on both components.
+				const px = rx * cosR - ty * sinR;
+				const py = rx * sinR + ty * cosR;
+
 				// Perspective divide; tz is in [-1, 1] so the denominator is safe.
 				const scale = CAMERA_DISTANCE / (CAMERA_DISTANCE - tz);
-				const sx = cx + rx * radius * scale;
-				const sy = cy + ty * radius * scale;
+				const sx = cx + px * radius * scale;
+				const sy = cy + py * radius * scale;
 
 				if (i > 0) {
 					// Depth of the segment midpoint, mapped to 0 (back) .. 1 (front).
@@ -254,6 +295,14 @@ export function initHeroGlobe(): () => void {
 		const elapsed = lastTime ? now - lastTime : 0;
 		lastTime = now;
 		angle += (elapsed / 1000 / ROTATION_PERIOD) * Math.PI * 2;
+
+		// Exponential approach, derived from elapsed rather than applied as a
+		// fixed fraction per frame — a 144Hz display would otherwise settle more
+		// than twice as fast as a 60Hz one.
+		const k = 1 - Math.exp(-elapsed / POINTER_SETTLE);
+		rollOffset += (targetRoll - rollOffset) * k;
+		tiltOffset += (targetTilt - tiltOffset) * k;
+
 		render();
 		frame = requestAnimationFrame(tick);
 	};
@@ -303,9 +352,33 @@ export function initHeroGlobe(): () => void {
 		attributeFilter: ['class'],
 	});
 
+	/**
+	 * Touch is excluded by pointer type rather than by screen width. A drag on a
+	 * phone is a scroll gesture, and letting it steer the globe as well would
+	 * put the decoration in direct competition with snap scrolling. Going by
+	 * type keeps the mouse working on hybrid laptops and large tablets with a
+	 * trackpad, which a width check would have wrongly ruled out.
+	 */
+	const onPointerMove = (event: PointerEvent) => {
+		if (event.pointerType === 'touch' || reducedMotion.matches) return;
+		targetRoll = ((event.clientX / window.innerWidth) * 2 - 1) * POINTER_ROLL;
+		targetTilt = ((event.clientY / window.innerHeight) * 2 - 1) * POINTER_TILT;
+	};
+
+	// Ease back to rest when the cursor leaves the window, rather than leaving
+	// the form parked at whatever angle it was last pushed to.
+	const onPointerLeave = () => {
+		targetRoll = 0;
+		targetTilt = 0;
+	};
+
 	const onReducedMotionChange = () => {
 		if (reducedMotion.matches) {
 			stop();
+			targetRoll = 0;
+			targetTilt = 0;
+			rollOffset = 0;
+			tiltOffset = 0;
 			render();
 		} else {
 			syncPlayback();
@@ -315,6 +388,8 @@ export function initHeroGlobe(): () => void {
 
 	window.addEventListener('resize', onResize);
 	document.addEventListener('visibilitychange', onVisibilityChange);
+	window.addEventListener('pointermove', onPointerMove, { passive: true });
+	document.documentElement.addEventListener('pointerleave', onPointerLeave);
 
 	readColor();
 	resize();
@@ -328,6 +403,11 @@ export function initHeroGlobe(): () => void {
 		reducedMotion.removeEventListener('change', onReducedMotionChange);
 		window.removeEventListener('resize', onResize);
 		document.removeEventListener('visibilitychange', onVisibilityChange);
+		window.removeEventListener('pointermove', onPointerMove);
+		document.documentElement.removeEventListener(
+			'pointerleave',
+			onPointerLeave
+		);
 	};
 
 	return () => {
