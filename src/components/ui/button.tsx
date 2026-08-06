@@ -5,7 +5,10 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button font-heading inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-bold whitespace-nowrap transition-all outline-none select-none focus:ring-[3px] focus:ring-primary/50 dark:focus:ring-primary/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  // Focus ring is declared here and nowhere else — see --ring in global.css.
+  // Unlike the border colour below, one shared value is the point: a ring that
+  // changed hue per variant made tabbing read as several different indicators.
+  "group/button font-heading inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding text-sm font-bold whitespace-nowrap transition-all outline-none select-none focus:ring-[4px] focus:ring-ring/85 dark:focus:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -15,20 +18,25 @@ const buttonVariants = cva(
         // them, CSS source order silently picks the winner.
         default:
           "border-transparent bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
+        // No ring override: focus is one system-wide colour, declared once on
+        // the base. This variant is the reason the light ring is opaque — it's
+        // the only one whose ring lands against a visible border of its own,
+        // and at 50% it measured just 1.75:1 against that border, muddying into
+        // it. The global 85% takes that to 3.74:1.
         outline:
-          "focus:ring-secondary/50 dark:focus:ring-secondary/30 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         // Reads the --secondary-* tokens rather than hardcoding a colour, so a
         // slate section can retarget them (a slate button on slate vanishes).
         secondary:
-          "focus:ring-secondary/50 dark:focus:ring-secondary/30 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary-hover active:bg-secondary-active aria-expanded:bg-secondary-active aria-expanded:text-secondary-foreground",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary-hover active:bg-secondary-active aria-expanded:bg-secondary-active aria-expanded:text-secondary-foreground",
         // Hover and open/pressed states use the secondary pair rather than
         // muted — muted is a passive surface, and a control responding to the
         // pointer should read as the same family as a secondary button. No
         // dark: override needed: --secondary is already per-theme.
         ghost:
-          "focus:ring-secondary/50 dark:focus:ring-secondary/30 border-transparent hover:bg-secondary hover:text-secondary-foreground active:bg-secondary-active active:text-secondary-foreground aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "border-transparent hover:bg-secondary hover:text-secondary-foreground active:bg-secondary-active active:text-secondary-foreground aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         destructive:
-          "border-transparent bg-destructive/10 text-destructive hover:bg-destructive/20 focus:ring-destructive/50 dark:focus:ring-destructive/30 dark:bg-destructive/20 dark:hover:bg-destructive/30",
+          "border-transparent bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30",
         link: "border-transparent text-primary underline-offset-4 hover:underline",
       },
       // Size scale. `default` and `lg` are the standard, comfortable sizes;

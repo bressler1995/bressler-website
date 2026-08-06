@@ -1,6 +1,7 @@
 ---
 import { ClientRouter } from 'astro:transitions';
 import Nav from '@/components/Nav';
+import { buildSearchIndex } from '@/lib/search-index';
 import '@/styles/global.css';
 
 interface Props {
@@ -23,6 +24,11 @@ const {
 	description = 'Portfolio of Brian Ressler — software engineer.',
 	snap = true,
 } = Astro.props;
+
+// Built once per page at build time and serialised into the nav island. The
+// collections can't be read from the browser, so the index has to travel as a
+// prop rather than being imported by the React component.
+const searchIndex = await buildSearchIndex();
 ---
 
 {/* data-snap drives both the CSS fallback and the JS controller. The router
@@ -86,7 +92,7 @@ const {
 	<body class="bg-background text-foreground min-h-dvh antialiased">
 		{/* transition:persist keeps this exact DOM node (and its React state)
 		    across navigations, so the bar never re-mounts or flickers. */}
-		<Nav client:load transition:persist />
+		<Nav client:load transition:persist searchIndex={searchIndex} />
 
 		{/* No padding or width here — each <Section> owns its own sizing so
 		    every section is exactly one viewport tall. */}

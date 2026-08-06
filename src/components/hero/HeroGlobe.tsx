@@ -8,8 +8,11 @@ import { initHeroGlobe } from './hero-globe';
  *
  * The canvas draws the lines at full strength; the scrim on top is the page
  * background at partial opacity, knocking the whole thing back so it reads as
- * a texture rather than an illustration. Both live here so the veil always
- * travels with the globe and can't accidentally be layered over the gradient.
+ * a texture rather than an illustration. It is denser over the left column,
+ * where the copy needs the contrast, and thins toward the right so the
+ * wireframe stays crisp where nothing competes with it. Both live here so the
+ * veil always travels with the globe and can't accidentally be layered over
+ * the gradient.
  *
  * The canvas only animates if an ancestor is hydrated — a `client:*` directive
  * applies at the boundary where Astro mounts React, and nested components can't
@@ -32,11 +35,10 @@ export function HeroGlobe() {
 				}}
 			/>
 
-			{/* Scrim: --hero-globe-scrim is the page background at 55%. */}
-			<div
-				className="absolute inset-0"
-				style={{ background: 'var(--hero-globe-scrim)' }}
-			/>
+			{/* Scrim: the page background, dense over the copy and thin over the
+			    globe. Geometry lives in hero.css because it changes at a
+			    breakpoint. */}
+			<div className="hero-scrim absolute inset-0" />
 		</div>
 	);
 }

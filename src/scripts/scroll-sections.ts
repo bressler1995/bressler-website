@@ -123,6 +123,47 @@ export function initScrollSections() {
 		return rect.top < -EPSILON;
 	};
 
+	/**
+	 * True while a modal owns scrolling. Radix sets this on <body> through
+	 * react-remove-scroll, so one check covers the spotlight dialog, the mobile
+	 * menu sheet, and anything else built on the same primitive.
+	 *
+	 * Needed because these listeners sit on `window` with passive:false — an
+	 * open dialog doesn't stop wheel events reaching them, so without this the
+	 * page scrolls underneath the modal while the dialog's own list stays put.
+	 */
+	const scrollLocked = () => document.body.hasAttribute('data-scroll-locked');
+
+	/**
+	 * True when the gesture started inside something that can still scroll the
+	 * way the user is pushing — a command list, an overflow panel, a long code
+	 * block. That element owns the gesture; stealing it would scroll the page
+	 * instead of the thing under the pointer.
+	 *
+	 * Belt and braces alongside `scrollLocked`: this one needs no cooperation
+	 * from the modal library, so nested scrolling keeps working even in places
+	 * that never set the lock attribute.
+	 */
+	const insideScrollable = (target: EventTarget | null, direction: number) => {
+		let node = target instanceof Element ? target : null;
+		while (node && node !== document.body && node !== root) {
+			if (node instanceof HTMLElement) {
+				const overflowY = getComputedStyle(node).overflowY;
+				if (
+					(overflowY === 'auto' || overflowY === 'scroll') &&
+					node.scrollHeight > node.clientHeight + EPSILON
+				) {
+					const atTop = node.scrollTop <= EPSILON;
+					const atBottom =
+						node.scrollTop + node.clientHeight >= node.scrollHeight - EPSILON;
+					if (direction > 0 ? !atBottom : !atTop) return true;
+				}
+			}
+			node = node.parentElement;
+		}
+		return false;
+	};
+
 	const step = (direction: number, event: Event) => {
 		if (animating) {
 			event.preventDefault();
@@ -143,6 +184,8 @@ export function initScrollSections() {
 	const onWheel = (e: WheelEvent) => {
 		if (Math.abs(e.deltaY) < WHEEL_THRESHOLD) return;
 		if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+		if (scrollLocked()) return;
+		if (insideScrollable(e.target, e.deltaY > 0 ? 1 : -1)) return;
 
 		const now = performance.now();
 		if (now - lastWheelTime > GESTURE_GAP) gestureConsumed = false;
@@ -174,8 +217,10 @@ export function initScrollSections() {
 	const onTouchMove = (e: TouchEvent) => {
 		const delta = touchStartY - (e.touches[0]?.clientY ?? 0);
 		if (Math.abs(delta) < SWIPE_THRESHOLD) return;
+		if (scrollLocked()) return;
 
 		const direction = delta > 0 ? 1 : -1;
+		if (insideScrollable(e.target, direction)) return;
 		if (shouldDeferToNative(direction)) return;
 
 		// touchmove streams continuously; without this one drag would advance
@@ -204,6 +249,9 @@ export function initScrollSections() {
 			return;
 		}
 		if (e.metaKey || e.ctrlKey || e.altKey) return;
+		// An open dialog owns its arrow and Home/End keys — cmdk moves the
+		// highlighted item with them.
+		if (scrollLocked()) return;
 
 		switch (e.key) {
 			case 'ArrowDown':

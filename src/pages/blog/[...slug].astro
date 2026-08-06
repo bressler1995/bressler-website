@@ -1,0 +1,58 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog', ({ data }) => !data.draft);
+	return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+// Rendered in UTC. A bare YYYY-MM-DD in frontmatter parses to UTC midnight, so
+// formatting in local time shifts it a day backwards for anyone behind UTC —
+// 2026-07-01 displayed as "30 June".
+const formattedDate = post.data.date.toLocaleDateString('en-GB', {
+	day: 'numeric',
+	month: 'long',
+	year: 'numeric',
+	timeZone: 'UTC',
+});
+---
+
+{/* An article is one continuous document, so snapping is off — same call as
+    /design-system and /search. */}
+<BaseLayout
+	title={`${post.data.title} — Brian Ressler`}
+	description={post.data.blurb}
+	snap={false}
+>
+	<Section align="start">
+		<article class="max-w-2xl">
+			<a
+				href="/blog"
+				class="text-muted-foreground hover:text-foreground text-body-sm focus-visible:ring-ring/85 dark:focus-visible:ring-ring/50 inline-block rounded-sm outline-none transition-colors focus-visible:ring-[4px]"
+			>
+				← Blog
+			</a>
+
+			<h1 class="text-h1 title-rule mt-4 text-balance">{post.data.title}</h1>
+
+			<time class="text-muted-foreground text-caption mt-3 block" datetime={post.data.date.toISOString()}>
+				{formattedDate}
+			</time>
+
+			<p class="text-body-lg text-muted-foreground mt-4 text-pretty">
+				{post.data.blurb}
+			</p>
+
+			{/* rich-text styles the markdown the MDX body compiles to — headings,
+			    lists and links have no classes of their own. */}
+			<div class="rich-text mt-10">
+				<Content />
+			</div>
+		</article>
+	</Section>
+</BaseLayout>

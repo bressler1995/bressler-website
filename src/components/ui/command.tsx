@@ -37,12 +37,17 @@ function CommandDialog({
   children,
   className,
   showCloseButton = false,
+  commandProps,
   ...props
 }: React.ComponentProps<typeof Dialog> & {
   title?: string
   description?: string
   className?: string
   showCloseButton?: boolean
+  /** Forwarded to the inner <Command> — e.g. shouldFilter={false} when the
+      caller ranks results itself. Without this the props spread lands on
+      <Dialog> and cmdk never sees them. */
+  commandProps?: React.ComponentProps<typeof Command>
 }) {
   return (
     <Dialog {...props}>
@@ -57,7 +62,18 @@ function CommandDialog({
         )}
         showCloseButton={showCloseButton}
       >
-        {children}
+        {/* The children must be wrapped in <Command>: CommandInput and
+            CommandList read cmdk's store through context, and outside the
+            provider that lookup returns undefined — which surfaces as
+            "Cannot read properties of undefined (reading 'subscribe')" and
+            stops the dialog rendering at all. This wrapper is present in
+            upstream shadcn and missing from the radix-nova variant. */}
+        <Command
+          {...commandProps}
+          className={cn("rounded-none bg-transparent p-0", commandProps?.className)}
+        >
+          {children}
+        </Command>
       </DialogContent>
     </Dialog>
   )

@@ -12,14 +12,8 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import {
-	CommandDialog,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-} from '@/components/ui/command';
+import SearchDialog from '@/components/SearchDialog';
+import type { SearchEntry } from '@/lib/search';
 import {
 	Sheet,
 	SheetContent,
@@ -94,7 +88,7 @@ const links = [
 	{ href: '/contact', label: 'Contact', icon: Mail },
 ];
 
-export default function Nav() {
+export default function Nav({ searchIndex }: { searchIndex: SearchEntry[] }) {
 	// Empty until hydration so the server-rendered markup matches; the active
 	// link only lights up once we know the real pathname.
 	const [path, setPath] = React.useState('');
@@ -242,7 +236,7 @@ export default function Nav() {
 					<a
 						href="/"
 						className={cn(
-							'font-heading text-label hover:bg-accent focus-visible:ring-secondary/50 dark:focus-visible:ring-secondary/30 ml-1 rounded-lg px-3 tracking-tight outline-none focus-visible:ring-[3px]',
+							'font-heading text-label hover:bg-accent focus-visible:ring-ring/85 dark:focus-visible:ring-ring/50 ml-1 rounded-lg px-3 tracking-tight outline-none focus-visible:ring-[4px]',
 							'transition-all duration-300 motion-reduce:transition-none',
 							compact ? 'py-1.5' : 'py-2.5'
 						)}
@@ -302,7 +296,7 @@ export default function Nav() {
 									className={cn(
 										// Nav links are controls, not prose — they take the
 										// prominent face like the buttons beside them.
-										'font-heading text-body-sm focus-visible:ring-secondary/50 dark:focus-visible:ring-secondary/30 relative z-10 block rounded-lg px-3 outline-none focus-visible:ring-[3px]',
+										'font-heading text-body-sm focus-visible:ring-ring/85 dark:focus-visible:ring-ring/50 relative z-10 block rounded-lg px-3 outline-none focus-visible:ring-[4px]',
 										// Colour moves quickly (180ms) while the pill glides (520ms), so the
 										// label feels responsive rather than dragged along. Padding
 										// keeps the bar's own 300ms so it stays in step when the nav
@@ -346,6 +340,7 @@ export default function Nav() {
 						{/* Steps down with the bar, but stays one notch above the icon
 						    buttons beside it — it's the call to action, not chrome. */}
 						<Button
+							variant={'outline'}
 							size={compact ? 'sm' : 'default'}
 							onClick={() => go('/contact')}
 						>
@@ -374,7 +369,7 @@ export default function Nav() {
 											<a
 												href={href}
 												className={cn(
-													'font-heading text-body-sm focus-visible:ring-secondary/50 dark:focus-visible:ring-secondary/30 rounded-lg outline-none focus-visible:ring-[3px] flex items-center gap-3 px-3 py-2 transition-colors',
+													'font-heading text-body-sm focus-visible:ring-ring/85 dark:focus-visible:ring-ring/50 rounded-lg outline-none focus-visible:ring-[4px] flex items-center gap-3 px-3 py-2 transition-colors',
 													isActive(href)
 														? 'text-label bg-primary text-primary-foreground hover:bg-primary/80'
 														: 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
@@ -392,31 +387,12 @@ export default function Nav() {
 				</nav>
 			</header>
 
-			<CommandDialog
+			<SearchDialog
 				open={searchOpen}
 				onOpenChange={setSearchOpen}
-				title="Search"
-				description="Jump to a page"
-			>
-				<CommandInput placeholder="Search pages…" />
-				<CommandList>
-					<CommandEmpty>No results found.</CommandEmpty>
-					<CommandGroup heading="Pages">
-						{links.map(({ href, label, icon: Icon }) => (
-							<CommandItem key={href} value={label} onSelect={() => go(href)}>
-								<Icon className="size-4" />
-								{label}
-							</CommandItem>
-						))}
-						<CommandItem
-							value="Design system"
-							onSelect={() => go('/design-system')}
-						>
-							Design system
-						</CommandItem>
-					</CommandGroup>
-				</CommandList>
-			</CommandDialog>
+				onNavigate={go}
+				index={searchIndex}
+			/>
 		</>
 	);
 }

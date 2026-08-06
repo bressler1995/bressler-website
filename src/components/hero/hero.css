@@ -1,5 +1,5 @@
 /**
- * Hero-only design tokens.
+ * Hero-only backdrop tokens.
  *
  * These live here rather than in global.css because nothing outside this
  * directory reads them — they describe one component's backdrop, not the design
@@ -9,37 +9,99 @@
  * itself: the canvas script reads them off documentElement, and they need to
  * flip with the theme class, which sits on <html>.
  *
- * Values are derived from the palette in global.css. CSS can't attach an alpha
- * channel to a var(), so the translucent ones repeat their palette hex with an
- * alpha suffix — the comment on each names the step it comes from.
+ * Every value is now mixed from a palette token rather than repeating a hex
+ * with an alpha suffix. color-mix() survives the build untouched — Lightning
+ * CSS emits a downlevelled fallback only when it can fold the value, and it
+ * can't fold a var() — so the hero can no longer drift out of step with the
+ * palette. (It previously had: the old scrim comment claimed 55% while both
+ * literals were actually 0xb3, or 70%.)
  */
 
-:root {
-	/* Wireframe lines, then a scrim of the page background knocked over them.
-	   Drawing at full strength and veiling keeps the lines crisp rather than
-	   thin-and-grey. Light mode can't use white — it would vanish on a
-	   near-white page — so it takes a mid indigo.
-	   --hero-globe-scrim mirrors --background at 55%; keep them in step. */
-	--hero-globe-line: var(--indigo-100);
-	--hero-globe-scrim: #fdfdffb3;
+/* --- Composition -----------------------------------------------------------
+   The backdrop is one idea — a section lit from the upper right, with the
+   globe emerging out of the dark — built from two stacked layers.
 
-	/* Backdrop wash: the brand colours at very low alpha. Even with all three
-	   gradients overlapping, muted text over them measures 5.81:1. Raising
-	   these breaks AA on the hero paragraph. */
-	--hero-glow-1: #0c122a12; /* indigo-300   @ 7%   */
-	--hero-glow-2: #5064ab14; /* indigo-100   @ 8%   */
-	--hero-glow-3: #2120470f; /* indigo-200   @ 6%   */
+   The wash, behind the globe:
+
+     wash-deep    the lower-left corner, pushed below the page surface
+     wash-lift    the upper-right corner, pulled above it
+     wash-bloom   a soft halo centred on the globe itself
+
+   The scrim, over the globe, which is the layer that changed character most.
+   It used to be a flat veil at a single opacity across the whole section,
+   which dimmed the globe hardest at the right — where nothing competes with
+   it and it is the entire point of the composition. It is now directional:
+
+     scrim-near   dense, over the left column where the copy sits
+     scrim-far    thin, over the right where the wireframe is free to be crisp
+
+   So the veil is doing legibility work where there is text to protect, and
+   getting out of the way where there isn't, instead of splitting the
+   difference everywhere.
+
+   Both scrim steps mix from --background, so they track the page surface by
+   construction rather than by a comment asking the next person to keep them in
+   step. */
+
+:root {
+	/* Light mode can't use the foreground for the wireframe — near-black lines
+	   would read as an illustration rather than a texture.
+
+	   Space Indigo rather than the mid indigo the light palette usually reaches
+	   for. Measured on the crisp right-hand side of the hero, the darkest line
+	   sits at 1.61:1 against the page here, against 1.35:1 for --indigo-100 and
+	   1.43:1 for --slate-deep. Slate-deep is the more idiomatic light-mode step
+	   but it is only a ~6% change in texture strength — not enough to see. The
+	   next step down (--indigo-300) buys only 8% more than this one, so this is
+	   where the curve flattens: visible as a texture, still nowhere near
+	   competing with the copy at 5.7:1. */
+	--hero-globe-line: var(--indigo-200);
+
+	--hero-scrim-near: color-mix(in oklab, var(--background) 84%, transparent);
+	--hero-scrim-far: color-mix(in oklab, var(--background) 48%, transparent);
+
+	/* Tints, not glows: on a near-white page the wash reads as the faintest
+	   shading. Anything stronger turns the section grey and starts eating into
+	   the hero paragraph's contrast. */
+	--hero-wash-deep: color-mix(in oklab, var(--indigo-300) 7%, transparent);
+	--hero-wash-lift: color-mix(in oklab, var(--indigo-100) 10%, transparent);
+	--hero-wash-bloom: color-mix(in oklab, var(--indigo-100) 8%, transparent);
 }
 
 .dark {
-	/* White wireframe against the near-black page, veiled by the scrim.
-	   Mirrors --background at 55%. */
-	--hero-globe-line: #ffffff;
-	--hero-globe-scrim: #0c122ab3;
+	/* White wireframe against the near-black page. Tracks the ink colour rather
+	   than hardcoding white, so an off-white foreground would carry through. */
+	--hero-globe-line: var(--foreground);
 
-	/* Lifted brand hues so they read as a glow rather than muddying the page.
-	   Stacked, muted text over them measures 6.82:1. */
-	--hero-glow-1: #2120475c; /* indigo-200 (space indigo) @ 36% */
-	--hero-glow-2: #5064ab4d; /* indigo-100 (slate)        @ 30% */
-	--hero-glow-3: #5064ab33; /* indigo-100 (slate)        @ 20% */
+	--hero-scrim-near: color-mix(in oklab, var(--background) 82%, transparent);
+	--hero-scrim-far: color-mix(in oklab, var(--background) 34%, transparent);
+
+	/* The deep step reaches past the page background to the darkest ramp step,
+	   which is what gives the corner somewhere to fall away to — mixing the
+	   background into itself would have been a no-op. */
+	--hero-wash-deep: color-mix(in oklab, var(--indigo-500) 55%, transparent);
+	--hero-wash-lift: color-mix(in oklab, var(--indigo-100) 30%, transparent);
+	--hero-wash-bloom: color-mix(in oklab, var(--indigo-100) 24%, transparent);
+}
+
+/* --- Scrim geometry -------------------------------------------------------- */
+
+.hero-scrim {
+	background: linear-gradient(
+		100deg,
+		var(--hero-scrim-near) 0%,
+		var(--hero-scrim-near) 26%,
+		var(--hero-scrim-far) 82%
+	);
+}
+
+/* Below the width where the globe moves off to the right — 48rem, matching
+   WIDE_BREAKPOINT in hero-globe.ts, which can't read the CSS scale — the copy
+   spans the full column and there is no quiet side to open up. A directional
+   veil there would just thin the protection under the end of every line, so
+   the flat veil is the correct answer at this size rather than a fallback. */
+@media (width < 48rem) {
+	.hero-scrim {
+		background: var(--hero-scrim-near);
+	}
 }

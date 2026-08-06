@@ -1,44 +1,56 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Section from '@/components/Section';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const projects = [
-	{ title: 'Project One', blurb: 'Placeholder description.', tags: ['Astro', 'TypeScript'] },
-	{ title: 'Project Two', blurb: 'Placeholder description.', tags: ['React', 'Node.js'] },
-	{ title: 'Project Three', blurb: 'Placeholder description.', tags: ['Postgres'] },
-	{ title: 'Project Four', blurb: 'Placeholder description.', tags: ['Docker', 'CI'] },
-];
+// Manual ordering via frontmatter — projects aren't chronological.
+const projects = (await getCollection('projects', ({ data }) => !data.draft)).sort(
+	(a, b) => a.data.order - b.data.order
+);
+
+/**
+ * Matches the blog listing: the whole card is the link, so the hit target is
+ * the card rather than just the title, and the card reacts through `group-*`.
+ */
+const cardLink =
+	'group focus-visible:ring-ring/85 dark:focus-visible:ring-ring/50 rounded-xl outline-none focus-visible:ring-[4px]';
 ---
 
 <BaseLayout title="Projects — Brian Ressler">
 	<Section align="start">
 		<h1 class="text-h1 title-rule">Projects</h1>
-	<p class="text-muted-foreground mt-2">
-		Placeholder cards. Replace with a content collection when you're ready.
-	</p>
+		<p class="text-muted-foreground mt-2">
+			Selected work and the things behind it.
+		</p>
 
-	<div class="mt-8 grid gap-4 sm:grid-cols-2">
-		{
-			projects.map((project) => (
-				<Card>
-					<CardHeader>
-						<CardTitle>{project.title}</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<p class="text-muted-foreground text-body-sm">{project.blurb}</p>
-						<ul class="flex flex-wrap gap-2">
-							{project.tags.map((tag) => (
-								<li>
-									<Badge variant="secondary">{tag}</Badge>
-								</li>
-							))}
-						</ul>
-					</CardContent>
-				</Card>
-			))
-		}
+		<div class="mt-8 grid gap-4 sm:grid-cols-2">
+			{
+				projects.map((project) => (
+					<a href={`/projects/${project.id}`} class={cardLink}>
+						<Card className="group-hover:border-primary/50 h-full transition-colors">
+							<CardHeader>
+								<CardTitle className="group-hover:text-primary transition-colors">
+									{project.data.title}
+								</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<p class="text-muted-foreground text-body-sm">
+									{project.data.blurb}
+								</p>
+								<ul class="flex flex-wrap gap-2">
+									{project.data.tags.map((tag) => (
+										<li>
+											<Badge variant="secondary">{tag}</Badge>
+										</li>
+									))}
+								</ul>
+							</CardContent>
+						</Card>
+					</a>
+				))
+			}
 		</div>
 	</Section>
 </BaseLayout>

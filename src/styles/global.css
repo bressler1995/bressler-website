@@ -44,6 +44,70 @@
     }
   }
 
+/* Long-form body copy from MDX. The compiled markdown carries no classes of its
+   own, so this is where headings, lists and links pick up the type scale. Kept
+   to the elements markdown can actually produce — anything richer should be a
+   real component dropped into the MDX instead. */
+@utility rich-text {
+  & > * + * {
+    margin-top: 1.25em;
+  }
+
+  /* @apply rather than font-size: var(--text-h2) — each type step carries its
+     own line-height, letter-spacing and weight in sibling custom properties,
+     and only the utility pulls in all four. */
+  & h2 {
+    @apply text-h2 font-heading text-foreground;
+    margin-top: 2em;
+  }
+
+  & h3 {
+    @apply text-h3 font-heading text-foreground;
+    margin-top: 1.75em;
+  }
+
+  & p,
+  & li {
+    color: var(--muted-foreground);
+  }
+
+  & ul,
+  & ol {
+    padding-left: 1.5rem;
+  }
+
+  & ul {
+    list-style: disc;
+  }
+
+  & ol {
+    list-style: decimal;
+  }
+
+  & li + li {
+    margin-top: 0.5rem;
+  }
+
+  & a {
+    color: var(--primary);
+    text-underline-offset: 4px;
+    text-decoration-line: underline;
+  }
+
+  & code {
+    background-color: var(--muted);
+    border-radius: var(--radius-sm);
+    padding: 0.15em 0.4em;
+    font-size: 0.9em;
+  }
+
+  & blockquote {
+    border-left: 2px solid var(--rule);
+    padding-left: 1rem;
+    color: var(--muted-foreground);
+  }
+}
+
 /* Section surfaces. More than a background: a slate section is light enough
    that two tokens have to be retargeted inside it, so the utility carries those
    overrides rather than every call site remembering them. */
@@ -274,15 +338,23 @@
     --indigo-400: #05081b; /* 14% — recessed surfaces, sidebar */
     --indigo-500: #02030c; /* 10% — deepest step */
 
-    /* --- Accent, hue 116° — the call to action, dividers, focus ----------
+    /* --- Accent, hue 110° — the call to action, dividers, focus ----------
        A light hue, so its label is always the deep indigo rather than white:
-       ink beats white on every step of this ramp (5.21:1 vs 3.55:1 at the
-       darkest). That also makes primary read identically in both themes. */
-    --accent-100: #eaf8a2; /* 95% */
-    --accent-200: #e0f17a; /* 92% — primary hover (dark) */
-    --accent-300: #d4e84f; /* 89% — THE BASE — primary fill (dark), dividers */
-    --accent-400: #b9c945; /* 80% — primary active (dark), hover (light) */
-    --accent-500: #838f20; /* 62% — primary fill (light), dividers (light) */
+       ink beats white on every step of this ramp (5.17:1 vs 3.57:1 at the
+       darkest). That also makes primary read identically in both themes.
+
+       The ramp was rotated from 116° — a yellow-green — to sit on the yellow
+       axis itself, which in OKLCH is ~110°. That is the stopping point rather
+       than a taste call: rotating further doesn't read as "more yellow", it
+       reads as orange, because there is nothing past yellow in that direction
+       that is still yellow. Lightness is unchanged at every step (the
+       percentages below still hold), so nothing that depends on the ramp's
+       tonal structure moved — only the hue. */
+    --accent-100: #f2f59e; /* 95% */
+    --accent-200: #ebed73; /* 92% — primary hover (dark) */
+    --accent-300: #e1e443; /* 89% — THE BASE — primary fill (dark), dividers */
+    --accent-400: #c4c53b; /* 80% — primary active (dark), hover (light) */
+    --accent-500: #8c8c14; /* 62% — primary fill (light), dividers (light) */
 
     /* --- Off-palette ------------------------------------------------------
        Destructive is a true red — deliberately outside the brand hues so a
@@ -308,9 +380,20 @@
     /* --- Section surfaces --------------------------------------------------
        Three tiers so consecutive sections read as distinct bands. Light mode
        uses tints of the same hue; they sit outside the 100–500 ramp because a
-       five-step scale centred on Prussian can't also reach near-white. */
+       five-step scale centred on Prussian can't also reach near-white.
+
+       Alt used to be a dead neutral (#E1E1E1), which made that "same hue"
+       claim false — it was the only surface in the theme carrying no indigo at
+       all. It is now a light indigo, chosen so the bands did not get closer
+       together in the process: perceptual distance is 9.4 from base and 3.3
+       from slate, against 8.5 and 3.0 for the grey it replaces.
+
+       Its chroma (0.016) deliberately stays just under slate's (0.0165). Slate
+       is the more saturated of the two in dark mode as well, so keeping that
+       order means the tiers rank the same way in both themes rather than
+       swapping places. */
     --surface-base: #fdfdff;
-    --surface-alt: #E1E1E1;
+    --surface-alt: #dbdeea;
     --surface-slate: #e6e9f5;
 
     --background: var(--surface-base);
@@ -352,10 +435,24 @@
     --input: #dbdde8;
 
     /* Focus rings. Primary tracks the accent; secondary and chrome use slate so
-       a focused secondary is distinguishable while tabbing. */
-    /* Focus rings avoid the accent in light mode for the same reason — a thin
-       indicator in a near-white hue can't reach 3:1 on a near-white page. */
-    --ring: var(--indigo-300);
+       a focused secondary is distinguishable while tabbing.
+
+       One focus colour for the whole system, applied as ring-ring/85 in light
+       and ring-ring/50 in dark. Focus is a system-level affordance, not part of
+       a control's own palette — a ring that changed hue per variant made
+       tabbing read as several different indicators.
+
+       The two themes need different colours to stay visible, not different
+       intents. Light takes the indigo at 85%: near-white pages need an opaque
+       ring, and 4.99:1 against the page (3.74:1 against a button's own border)
+       is what stops it muddying into the border it touches. Dark takes the
+       accent at 50%, 4.11:1 against Prussian — the accent is the one hue with
+       room to spare on a near-black page, where the old slate ring managed
+       only 1.59:1 and was effectively invisible.
+
+       Accent can't do the light side: at the steps a ring would use it measures
+       1.34:1, and the darkest step that does reach 3.52:1 reads as heavy olive. */
+    --ring: var(--slate-deep);
     --ring-accent: var(--slate-deep);
 
     /* A 3px accent rule is only 1.34:1 on a light page — it would read as

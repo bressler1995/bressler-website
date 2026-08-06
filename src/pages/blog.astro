@@ -2,15 +2,12 @@
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import Section from '@/components/Section';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getCollection } from 'astro:content';
 
-const posts = [
-	{ title: 'First post', date: '2026-07-01', blurb: 'Placeholder excerpt.' },
-	{ title: 'Second post', date: '2026-06-14', blurb: 'Placeholder excerpt.' },
-	{ title: 'Third post', date: '2026-05-30', blurb: 'Placeholder excerpt.' },
-	{ title: 'Fourth post', date: '2026-05-11', blurb: 'Placeholder excerpt.' },
-	{ title: 'Fifth post', date: '2026-04-22', blurb: 'Placeholder excerpt.' },
-	{ title: 'Sixth post', date: '2026-04-03', blurb: 'Placeholder excerpt.' },
-];
+// Newest first. Drafts never reach the listing, the routes or the search index.
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+	(a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
 
 /**
  * The whole card is the link, so the hit target is the card rather than just
@@ -19,35 +16,40 @@ const posts = [
  * reacts through `group-*`.
  */
 const cardLink =
-	'group focus-visible:ring-secondary/50 dark:focus-visible:ring-secondary/30 rounded-xl outline-none focus-visible:ring-[3px]';
+	'group focus-visible:ring-ring/85 dark:focus-visible:ring-ring/50 rounded-xl outline-none focus-visible:ring-[4px]';
 ---
 
 <BaseLayout title="Blog — Brian Ressler">
 	<Section align="start">
 		<h1 class="text-h1 title-rule">Blog</h1>
 		<p class="text-muted-foreground mt-2">
-			Placeholder cards. Wire this to a content collection of MDX posts later.
+			Writing on engineering and design.
 		</p>
 
 		{/* One column on phones, two from sm, four once past tablet width. */}
 		<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 			{
 				posts.map((post) => (
-					<a href="#" class={cardLink}>
+					<a href={`/blog/${post.id}`} class={cardLink}>
 						<Card className="group-hover:border-primary/50 h-full transition-colors">
 							<CardHeader>
 								<CardTitle className="group-hover:text-primary transition-colors">
-									{post.title}
+									{post.data.title}
 								</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-2">
 								<time
 									class="text-muted-foreground text-caption block"
-									datetime={post.date}
+									datetime={post.data.date.toISOString()}
 								>
-									{post.date}
+									{post.data.date.toLocaleDateString('en-GB', {
+										day: 'numeric',
+										month: 'long',
+										year: 'numeric',
+										timeZone: 'UTC',
+									})}
 								</time>
-								<p class="text-muted-foreground text-body-sm">{post.blurb}</p>
+								<p class="text-muted-foreground text-body-sm">{post.data.blurb}</p>
 							</CardContent>
 						</Card>
 					</a>

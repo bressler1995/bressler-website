@@ -1,0 +1,56 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Section from '@/components/Section';
+import { Badge } from '@/components/ui/badge';
+
+export async function getStaticPaths() {
+	const projects = await getCollection('projects', ({ data }) => !data.draft);
+	return projects.map((project) => ({
+		params: { slug: project.id },
+		props: { project },
+	}));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+
+<BaseLayout
+	title={`${project.data.title} — Brian Ressler`}
+	description={project.data.blurb}
+	snap={false}
+>
+	<Section align="start">
+		<article class="max-w-2xl">
+			<a
+				href="/projects"
+				class="text-muted-foreground hover:text-foreground text-body-sm focus-visible:ring-ring/85 dark:focus-visible:ring-ring/50 inline-block rounded-sm outline-none transition-colors focus-visible:ring-[4px]"
+			>
+				← Projects
+			</a>
+
+			<h1 class="text-h1 title-rule mt-4 text-balance">{project.data.title}</h1>
+
+			<p class="text-body-lg text-muted-foreground mt-4 text-pretty">
+				{project.data.blurb}
+			</p>
+
+			{
+				project.data.tags.length > 0 && (
+					<ul class="mt-6 flex flex-wrap gap-2">
+						{project.data.tags.map((tag) => (
+							<li>
+								<Badge variant="secondary">{tag}</Badge>
+							</li>
+						))}
+					</ul>
+				)
+			}
+
+			<div class="rich-text mt-10">
+				<Content />
+			</div>
+		</article>
+	</Section>
+</BaseLayout>
