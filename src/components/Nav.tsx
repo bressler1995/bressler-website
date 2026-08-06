@@ -228,7 +228,7 @@ export default function Nav({ searchIndex }: { searchIndex: SearchEntry[] }) {
 					// rounded-xl matches Card — the nav is a surface, so it takes the
 					// same radius step as other surfaces rather than a pill shape.
 					className={cn(
-						'bg-background/70 border-border/60 max-w-page flex w-full items-center gap-2 rounded-xl border shadow-lg backdrop-blur-md',
+						'bg-surface-nav/70 border-border/60 max-w-page flex w-full items-center gap-2 rounded-xl border shadow-lg backdrop-blur-md',
 						'transition-[padding] duration-300 motion-reduce:transition-none',
 						compact ? 'p-2' : 'p-3'
 					)}

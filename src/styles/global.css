@@ -286,6 +286,7 @@
     --color-surface-base: var(--surface-base);
     --color-surface-alt: var(--surface-alt);
     --color-surface-slate: var(--surface-slate);
+    --color-surface-nav: var(--surface-nav);
     --color-primary-hover: var(--primary-hover);
     --color-primary-active: var(--primary-active);
     --color-secondary-hover: var(--secondary-hover);
@@ -396,6 +397,13 @@
     --surface-alt: #dbdeea;
     --surface-slate: #e6e9f5;
 
+    /* The floating nav stays the page white here, unlike dark mode, which steps
+       darker. That asymmetry is deliberate rather than an oversight: the bar's
+       drop shadow does the separating, and a shadow only reads against a light
+       surface. Tinting the bar as well made it look like a disabled toolbar
+       instead of a panel floating above the page. */
+    --surface-nav: var(--surface-base);
+
     --background: var(--surface-base);
     --foreground: #141726;
     --card: #ffffff;
@@ -481,6 +489,14 @@
     --surface-base: var(--indigo-300);  /* Prussian */
     --surface-alt: var(--indigo-200);   /* Space Indigo */
     --surface-slate: var(--indigo-100); /* Slate Indigo */
+
+    /* Dark mode is where the nav needs its own colour: a drop shadow is
+       invisible against a near-black page, so without a tonal step the bar had
+       nothing but a hairline border separating it from what it floats over.
+       Recessed rather than raised — on a dark UI chrome reads as sitting below
+       the content plane, so this goes darker than Prussian. Space Indigo, the
+       obvious neighbouring step, would have gone the wrong way. */
+    --surface-nav: var(--indigo-400);
 
     --background: var(--surface-base);
     --foreground: #ffffff;
